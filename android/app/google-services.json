@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "306458683305",
+    "project_id": "stripefirebase-d2abb",
+    "storage_bucket": "stripefirebase-d2abb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:306458683305:android:8f6c4bc43d09a6acbd86b8",
+        "android_client_info": {
+          "package_name": "com.example.stripefirebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "306458683305-2rg48juhe57kmt4juarkaqt4dv848e1k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsqb0Yphj0Pb1sNMvI_8OUDMs899_SOAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "306458683305-2rg48juhe57kmt4juarkaqt4dv848e1k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "306458683305-fn2u89787pnd9usj196fir655kal5chv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.stripefirebase"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:306458683305:android:edf57225b9ae6224bd86b8",
+        "android_client_info": {
+          "package_name": "com.example.todo_list"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "306458683305-2rg48juhe57kmt4juarkaqt4dv848e1k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsqb0Yphj0Pb1sNMvI_8OUDMs899_SOAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "306458683305-2rg48juhe57kmt4juarkaqt4dv848e1k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "306458683305-fn2u89787pnd9usj196fir655kal5chv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.stripefirebase"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
