@@ -36,6 +36,12 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_core: ^0.7.0
   firebase_auth: ^0.20.1
+  intl: ^0.16.0
+  cloud_firestore: ^0.16.0+1
+  file_picker: ^2.1.7
+  firebase_storage: ^7.0.0
+  flutter_plugin_pdf_viewer: any
+  
 
 dev_dependencies:
   flutter_test:

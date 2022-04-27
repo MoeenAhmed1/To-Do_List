@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list/auth_service.dart';
+import 'package:todo_list/home_screen.dart';
 import 'package:todo_list/login_screen.dart';
+
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({Key key}) : super(key: key);
 
@@ -10,10 +12,11 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  bool passwordVisible=false;
-  bool conPasswordVisible=false;
-  String email="";
-  String password="";
+  bool passwordVisible = false;
+  bool conPasswordVisible = false;
+  String email = "";
+  String password = "";
+  String name = "";
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   @override
@@ -23,15 +26,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
           constraints: BoxConstraints.expand(),
           decoration: BoxDecoration(
             image: DecorationImage(
-                image: NetworkImage("https://images.pexels.com/photos/1461974/pexels-photo-1461974.jpeg?cs=srgb&dl=pexels-nextvoyage-1461974.jpg&fm=jpg"),
+                image: NetworkImage(
+                    "https://images.pexels.com/photos/1461974/pexels-photo-1461974.jpeg?cs=srgb&dl=pexels-nextvoyage-1461974.jpg&fm=jpg"),
                 fit: BoxFit.cover),
-
           ),
-
           child: SingleChildScrollView(
             child: Container(
               height: MediaQuery.of(context).size.height,
-
               color: Color(0xFFFFFFFF).withOpacity(0.9),
               child: Column(
                 children: [
@@ -42,11 +43,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       width: 150,
                       decoration: BoxDecoration(
                         image: DecorationImage(
-                            image: NetworkImage("https://images.unsplash.com/photo-1495615080073-6b89c9839ce0?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1206&q=80"),
+                            image: NetworkImage(
+                                "https://images.unsplash.com/photo-1495615080073-6b89c9839ce0?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1206&q=80"),
                             fit: BoxFit.cover),
-
                       ),
-
                     ),
                   ),
                   Padding(
@@ -54,9 +54,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     child: Container(
                       decoration: BoxDecoration(
                           border: Border.all(
-                            color: Colors.grey,
-                            width: 2,
-                          )),
+                        color: Colors.grey,
+                        width: 2,
+                      )),
                       child: Form(
                         key: formKey,
                         child: Column(
@@ -64,27 +64,26 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: TextField(
+                                onChanged: (value) {
+                                  name = value;
+                                },
                                 decoration: const InputDecoration(
-                                    hintText: 'Name',
-                                    border: InputBorder.none
-
-                                ),
+                                    hintText: 'Name', border: InputBorder.none),
                               ),
-
                             ),
-                            Divider(thickness: 2,color: Colors.grey,),
-
+                            Divider(
+                              thickness: 2,
+                              color: Colors.grey,
+                            ),
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: TextFormField(
-                                onChanged: (val){
-                                  email=val;
+                                onChanged: (val) {
+                                  email = val;
                                 },
                                 decoration: const InputDecoration(
                                     hintText: 'Email',
-                                    border: InputBorder.none
-
-                                ),
+                                    border: InputBorder.none),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter some text';
@@ -92,17 +91,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                   return null;
                                 },
                               ),
-
                             ),
-                            Divider(thickness: 2,color: Colors.grey,),
+                            Divider(
+                              thickness: 2,
+                              color: Colors.grey,
+                            ),
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: TextFormField(
                                 obscureText: !passwordVisible,
-
-                                onChanged: (value){
-                                  password=value;
-
+                                onChanged: (value) {
+                                  password = value;
                                 },
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -110,7 +109,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                   }
                                   return null;
                                 },
-
                                 decoration: InputDecoration(
                                   hintText: 'Password',
                                   border: InputBorder.none,
@@ -130,25 +128,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                     },
                                   ),
                                 ),
-
                               ),
                             ),
-                            Divider(thickness: 2,color: Colors.grey,),
+                            Divider(
+                              thickness: 2,
+                              color: Colors.grey,
+                            ),
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: TextFormField(
                                 obscureText: !conPasswordVisible,
-
-                                onChanged: (value){
-
-                                },
+                                onChanged: (value) {},
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter some text';
                                   }
                                   return null;
                                 },
-
                                 decoration: InputDecoration(
                                   hintText: 'Confirm Password',
                                   border: InputBorder.none,
@@ -163,21 +159,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                     onPressed: () {
                                       // Update the state i.e. toogle the state of passwordVisible variable
                                       setState(() {
-                                        conPasswordVisible = !conPasswordVisible;
+                                        conPasswordVisible =
+                                            !conPasswordVisible;
                                       });
                                     },
                                   ),
                                 ),
-
                               ),
                             ),
-                            SizedBox(height: 10,),
-
-
-
-
-
-
+                            SizedBox(
+                              height: 10,
+                            ),
                           ],
                         ),
                       ),
@@ -187,32 +179,50 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     padding: const EdgeInsets.fromLTRB(15, 8, 15, 8),
                     child: Column(
                       children: [
-                        Divider(thickness: 2,),
-                        TextButton(onPressed: ()async{
-                          final formState = formKey.currentState;
-                          if (formState.validate()){
-                            User user=await AuthService().signUpUser(email: email,password: password);
-                            if(user!=null)
-                              {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) =>  LoginPage()));
-                              }
-                          }
-                        },
-                            child: Text("Sign Up",style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold
-                            ),)
+                        Divider(
+                          thickness: 2,
                         ),
+                        TextButton(
+                            onPressed: () async {
+                              final formState = formKey.currentState;
+                              if (formState.validate()) {
+                                User user = await AuthService().signUpUser(
+                                    email: email, password: password);
+                                if (user != null) {
+                                  Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => HomePage(
+                                                email: email,
+                                                name: name,
+                                                user: user,
+                                              )),
+                                      (route) => false);
+                                  // Navigator.push(
+                                  //     context,
+                                  //     MaterialPageRoute(
+                                  //         builder: (context) => HomePage(
+                                  //               email: email,
+                                  //               name: name,
+                                  //               user: user,
+                                  //             )));
+                                }
+                              }
+                            },
+                            child: Text(
+                              "Sign Up",
+                              style: TextStyle(
+                                  color: Colors.blue,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold),
+                            )),
                       ],
                     ),
                   )
                 ],
               ),
             ),
-          )
-      ),
+          )),
     );
-
   }
 }
