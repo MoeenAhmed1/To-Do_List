@@ -54,7 +54,7 @@ class FirebaseRepo {
   Future updateTask(
       String taskTitle, bool isCompleted, int i, int taskListIndex) async {
     String id = await docId(i);
-    String listId = await taskDocId(i, taskListIndex);
+    String listId = await taskDocId(taskListIndex, id);
     await refUsers
         .doc(idUser)
         .collection('TasksLists')
@@ -78,7 +78,11 @@ class FirebaseRepo {
 
   Future uploadTaskDueDate(int i, DateTime dueDate, int taskListIndex) async {
     String id = await docId(i);
-    String listId = await taskDocId(i, taskListIndex);
+    print("moo");
+    print(id);
+    print("moo");
+    String listId = await taskDocId(taskListIndex, id);
+
     await refUsers
         .doc(idUser)
         .collection("TasksLists")
@@ -91,7 +95,7 @@ class FirebaseRepo {
   Future uploadTaskReminderAt(
       int i, TimeOfDay reminderAt, int taskListIndex) async {
     String id = await docId(i);
-    String listId = await taskDocId(i, taskListIndex);
+    String listId = await taskDocId(taskListIndex, id);
     await refUsers
         .doc(idUser)
         .collection("TasksLists")
@@ -103,7 +107,7 @@ class FirebaseRepo {
 
   Future uploadTaskNotes(int i, String notes, int taskListIndex) async {
     String id = await docId(i);
-    String listId = await taskDocId(i, taskListIndex);
+    String listId = await taskDocId(taskListIndex, id);
     await refUsers
         .doc(idUser)
         .collection("TasksLists")
@@ -124,7 +128,7 @@ class FirebaseRepo {
 
   Future uploadFile(int i, String filePath, int taskListIndex) async {
     String id = await docId(i);
-    String listId = await taskDocId(i, taskListIndex);
+    String listId = await taskDocId(taskListIndex, id);
     await refUsers
         .doc(idUser)
         .collection("TasksLists")
@@ -137,7 +141,7 @@ class FirebaseRepo {
 
   Future uploadSubTasks(int i, SubTask subTask, int taskListIndex) async {
     String id = await docId(i);
-    String listId = await taskDocId(i, taskListIndex);
+    String listId = await taskDocId(taskListIndex, id);
     await refUsers
         .doc(idUser)
         .collection("TasksLists")
@@ -194,7 +198,7 @@ class FirebaseRepo {
 
   Future<List> getSubTasks(int index, int taskIndex) async {
     String id = await docId(index);
-    String subTaskId = await taskDocId(taskIndex, index);
+    String subTaskId = await taskDocId(taskIndex, id);
     final stream = await refUsers
         .doc(idUser)
         .collection('TasksLists')
@@ -220,7 +224,7 @@ class FirebaseRepo {
 
   Future<List> getFiles(int index, int taskIndex) async {
     String id = await docId(index);
-    String subTaskId = await taskDocId(taskIndex, index);
+    String subTaskId = await taskDocId(taskIndex, id);
     final stream = await refUsers
         .doc(idUser)
         .collection('TasksLists')
@@ -247,8 +251,8 @@ class FirebaseRepo {
     return "0";
   }
 
-  Future<String> taskDocId(int i, int listIndex) async {
-    String id = await docId(listIndex);
+  Future<String> taskDocId(int i, String id) async {
+    print(i);
     QuerySnapshot querySnapshot = await refUsers
         .doc(idUser)
         .collection('TasksLists')
