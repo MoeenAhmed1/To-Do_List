@@ -15,8 +15,8 @@ class TaskDetailPage extends StatefulWidget {
   final String title;
   final int index;
   final int mainListIndex;
-  final TaskModel task;
-  const TaskDetailPage(
+  TaskModel task;
+  TaskDetailPage(
       {this.userData, this.title, this.index, this.mainListIndex, this.task});
 
   @override
@@ -25,6 +25,7 @@ class TaskDetailPage extends StatefulWidget {
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
   List<String> subTask = [];
+  List<TaskModel> tasks = [];
   String valueText = "";
   String displayDate = "";
   String notes = "";
@@ -51,26 +52,28 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         .getSubTasks(widget.mainListIndex, widget.index);
     urlList = await FirebaseRepo(idUser: widget.userData.uid)
         .getFiles(widget.mainListIndex, widget.index);
+    tasks = await FirebaseRepo(idUser: widget.userData.uid)
+        .getTaskDetails(widget.mainListIndex);
+    widget.task = tasks[widget.index];
+    if (widget.task.notes != null && !widget.task.notes.contains('null')) {
+      _notesFieldController.text = widget.task.notes;
+    } else if (widget.task.notes.contains('null')) {
+      _notesFieldController.clear();
+    } else {
+      _notesFieldController.text = widget.task.notes;
+    }
+    if (widget.task.reminderAt != null || widget.task.reminderAt != 'null') {
+      DisplayTime = widget.task.reminderAt;
+    }
+    if (widget.task.reminderAt == 'null') {
+      DisplayTime = '';
+    }
+    if (widget.task.dueDate != null || widget.task.dueDate.year != 1960) {
+      displayDate = DateFormat.yMMMEd().format(widget.task.dueDate);
+    }
 
     setState(() {
       loading = false;
-
-      if (widget.task.notes != null || widget.task.notes != 'null') {
-        _notesFieldController.text = widget.task.notes;
-      } else if (widget.task.notes.contains('null')) {
-        _notesFieldController.clear();
-      } else {
-        _notesFieldController.text = notes;
-      }
-      if (widget.task.reminderAt != null || widget.task.reminderAt != 'null') {
-        DisplayTime = widget.task.reminderAt;
-      }
-      if (widget.task.reminderAt == 'null') {
-        DisplayTime = '';
-      }
-      if (widget.task.dueDate != null || widget.task.dueDate.year != 1960) {
-        displayDate = DateFormat.yMMMEd().format(widget.task.dueDate);
-      }
     });
   }
 
@@ -131,6 +134,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               setState(() {
                                 displayDate = DateFormat.yMMMEd().format(date);
                               });
+
                               FirebaseRepo(idUser: widget.userData.uid)
                                   .uploadTaskDueDate(
                                       widget.mainListIndex, date, widget.index);
@@ -417,8 +421,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     await uploadTask.whenComplete(() async {
       uploadPath = await uploadTask.snapshot.ref.getDownloadURL();
       //File file = File.fromUri(Uri.file(uploadPath));
-      FirebaseRepo(idUser: widget.userData.uid)
+      await FirebaseRepo(idUser: widget.userData.uid)
           .uploadFile(widget.mainListIndex, uploadPath, widget.index);
+      getSubTask();
     });
   }
 
@@ -452,14 +457,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 color: Color(0XFF6F8671),
                 textColor: Colors.white,
                 child: Text('OK'),
-                onPressed: () {
+                onPressed: () async {
                   setState(() {
                     subTask.add(valueText);
                     SubTask task =
                         SubTask(completionStatus: false, taskTitle: valueText);
                     FirebaseRepo(idUser: widget.userData.uid).uploadSubTasks(
                         widget.mainListIndex, task, widget.index);
-
                     Navigator.pop(context);
                   });
                 },

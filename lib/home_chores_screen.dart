@@ -19,6 +19,7 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
   TextEditingController _textFieldController = TextEditingController();
   List<TaskModel> tasks = [];
   List<TaskModel> completedTasks = [];
+  List<TaskModel> inCompleteTasks = [];
   String valueText = "";
   bool hideCompletedTask = false;
   bool loading = true;
@@ -30,8 +31,17 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
   }
 
   getTasks() async {
+    completedTasks = [];
+    inCompleteTasks = [];
     tasks = await FirebaseRepo(idUser: widget.userData.uid)
         .getTaskDetails(widget.index);
+    for (int i = 0; i < tasks.length; i++) {
+      if (tasks[i].completionStatus == true) {
+        completedTasks.add(tasks[i]);
+      } else {
+        inCompleteTasks.add(tasks[i]);
+      }
+    }
     setState(() {
       loading = false;
     });
@@ -116,41 +126,41 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                           ),
                         ),
                       ),
-                      tasksListWidget(tasksList: tasks),
-                      // SizedBox(
-                      //   height: 10,
-                      // ),
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.center,
-                      //   children: [
-                      //     InkWell(
-                      //       onTap: () {
-                      //         setState(() {
-                      //           hideCompletedTask = !hideCompletedTask;
-                      //         });
-                      //       },
-                      //       child: Container(
-                      //         color: Color(0XFF6F8671).withOpacity(0.7),
-                      //         height: 40,
-                      //         width: 150,
-                      //         child: Center(
-                      //           child: Text(
-                      //             (hideCompletedTask)
-                      //                 ? "Show Completed Items"
-                      //                 : "Hide Completed Items",
-                      //             style: TextStyle(color: Colors.white),
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      // SizedBox(
-                      //   height: 10,
-                      // ),
-                      // (hideCompletedTask)
-                      //     ? Container()
-                      //     : tasksListWidget(tasksList: tasks),
+                      tasksListWidget(tasksList: inCompleteTasks),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                hideCompletedTask = !hideCompletedTask;
+                              });
+                            },
+                            child: Container(
+                              color: Color(0XFF6F8671).withOpacity(0.7),
+                              height: 40,
+                              width: 150,
+                              child: Center(
+                                child: Text(
+                                  (hideCompletedTask)
+                                      ? "Show Completed Items"
+                                      : "Hide Completed Items",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      (hideCompletedTask)
+                          ? Container()
+                          : tasksListWidget(tasksList: completedTasks),
                     ],
                   ),
                 ))));
@@ -174,20 +184,17 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () {
-                            // if (!completedTask) {
-                            //   setState(() {
-                            //     FirebaseRepo(idUser: widget.userData.uid)
-                            //         .updateTask(tasksList[index].taskTitle,
-                            //             true, widget.index, index);
-                            //   });
-                            // } else {
-                            //   setState(() {
-                            //     FirebaseRepo(idUser: widget.userData.uid)
-                            //         .updateTask(tasksList[index].taskTitle,
-                            //             false, widget.index, index);
-                            //   });
-                            // }
+                          onPressed: () async {
+                            setState(() {
+                              loading = true;
+                            });
+                            await FirebaseRepo(idUser: widget.userData.uid)
+                                .updateTask(
+                                    tasksList[index].taskTitle,
+                                    !tasksList[index].completionStatus,
+                                    widget.index,
+                                    index);
+                            getTasks();
                           },
                           icon: Icon(
                             (tasksList[index].completionStatus)
