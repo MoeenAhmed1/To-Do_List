@@ -17,7 +17,4 @@ class TaskModel {
       this.reminderAt,
       this.filePaths,
       this.subTasks});
-  // factory TaskModel.fromJson(Map<String, dynamic> data){
-  //   return TaskModel(taskTitle: data[''])
-  // }
 }
