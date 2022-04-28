@@ -87,7 +87,10 @@ class _HomePageState extends State<HomePage> {
                 child: Text('OK'),
                 onPressed: () {
                   setState(() {
+                   
                     tasksList.add(valueText);
+                     taskListLength.add(tasksList.length);
+
                     FirebaseRepo(idUser: userData.uid)
                         .uploadTaskList(valueText);
                     _textFieldController.clear();
@@ -103,9 +106,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return (loading)
-        ? Center(child: CircularProgressIndicator())
-        : Scaffold(
+    return 
+         Scaffold(
             appBar: AppBar(
               leading: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -120,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              title: Text(userName),
+              title: Text(userName??''),
               backgroundColor: Color(0XFF6F8671),
               actions: [
                 Icon(
@@ -154,7 +156,8 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            body: SingleChildScrollView(
+            body:(loading)
+        ? Center(child: CircularProgressIndicator()): SingleChildScrollView(
               child: Container(
                 child: Stack(
                   children: [
@@ -192,7 +195,7 @@ class _HomePageState extends State<HomePage> {
                                       Icons.task,
                                       color: Colors.grey,
                                     ),
-                                    taskListLength[index].toString(),
+                                    '0',
                                     index: index);
                               }),
                         ),

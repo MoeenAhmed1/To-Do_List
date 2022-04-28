@@ -245,7 +245,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   } else {
                                     return ListTile(
                                       leading: (subtasklist[index]
-                                              .completionStatus)
+                                              .completionStatus??false)
                                           ? InkWell(
                                               onTap: () {
                                                 // SubTask task = SubTask(
@@ -432,7 +432,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Add Task'),
+            title: Text('Add Sub Task'),
             content: TextField(
               onChanged: (value) {
                 setState(() {
@@ -460,6 +460,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 onPressed: () async {
                   setState(() {
                     subTask.add(valueText);
+                    subtasklist.add(SubTask(taskTitle: valueText,completionStatus: false));
                     SubTask task =
                         SubTask(completionStatus: false, taskTitle: valueText);
                     FirebaseRepo(idUser: widget.userData.uid).uploadSubTasks(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_progress_hud/flutter_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:todo_list/repo/firebase_repo.dart';
 import 'package:todo_list/task_detail.dart';
 
@@ -33,15 +35,22 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
   getTasks() async {
     completedTasks = [];
     inCompleteTasks = [];
-    tasks = await FirebaseRepo(idUser: widget.userData.uid)
-        .getTaskDetails(widget.index);
-    for (int i = 0; i < tasks.length; i++) {
-      if (tasks[i].completionStatus == true) {
-        completedTasks.add(tasks[i]);
-      } else {
-        inCompleteTasks.add(tasks[i]);
+    try {
+      tasks = await FirebaseRepo(idUser: widget.userData.uid)
+          .getTaskDetails(widget.index);
+      for (int i = 0; i < tasks.length; i++) {
+        if (tasks[i].completionStatus == true) {
+          completedTasks.add(tasks[i]);
+        } else {
+          inCompleteTasks.add(tasks[i]);
+        }
       }
+    } catch (e) {
+      setState(() {
+        loading = false;
+      });
     }
+
     setState(() {
       loading = false;
     });
@@ -49,121 +58,125 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-          backgroundColor: Color(0XFF6F8671),
-          actions: [
-            Icon(
-              Icons.person_add_alt,
-              size: 30,
-            ),
-            SizedBox(
-              width: 25,
-            ),
-            Icon(Icons.sort_by_alpha_outlined, size: 30),
-            SizedBox(
-              width: 25,
-            ),
-            Icon(Icons.more_vert, size: 30),
-            SizedBox(
-              width: 10,
-            ),
-          ],
-        ),
-        body: (loading)
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : Container(
-                constraints: BoxConstraints.expand(),
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            "https://images.pexels.com/photos/1461974/pexels-photo-1461974.jpeg?cs=srgb&dl=pexels-nextvoyage-1461974.jpg&fm=jpg"),
-                        fit: BoxFit.cover)),
-                child: SingleChildScrollView(
-                    child: Padding(
-                  padding: const EdgeInsets.fromLTRB(5, 15, 5, 5),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                        child: InkWell(
-                          onTap: () {
-                            _displayTextInputDialog(context);
-                          },
-                          child: Container(
-                            color: Color(0XFF6F8671).withOpacity(0.3),
-                            height: 60,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.add,
-                                      color: Colors.white,
-                                      size: 30,
-                                    ),
-                                    SizedBox(
-                                      width: 20,
-                                    ),
-                                    Text(
-                                      "New to-do",
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 22),
-                                    )
-                                  ],
-                                ),
-                                Icon(
-                                  Icons.star_border_outlined,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      tasksListWidget(tasksList: inCompleteTasks),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          InkWell(
+    return ModalProgressHUD(
+        inAsyncCall: loading,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(widget.title),
+            backgroundColor: Color(0XFF6F8671),
+            actions: [
+              Icon(
+                Icons.person_add_alt,
+                size: 30,
+              ),
+              SizedBox(
+                width: 25,
+              ),
+              Icon(Icons.sort_by_alpha_outlined, size: 30),
+              SizedBox(
+                width: 25,
+              ),
+              Icon(Icons.more_vert, size: 30),
+              SizedBox(
+                width: 10,
+              ),
+            ],
+          ),
+          body: Builder(
+              builder: (context) => Container(
+                  constraints: BoxConstraints.expand(),
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: NetworkImage(
+                              "https://images.pexels.com/photos/1461974/pexels-photo-1461974.jpeg?cs=srgb&dl=pexels-nextvoyage-1461974.jpg&fm=jpg"),
+                          fit: BoxFit.cover)),
+                  child: SingleChildScrollView(
+                      child: Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 15, 5, 5),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                          child: InkWell(
                             onTap: () {
-                              setState(() {
-                                hideCompletedTask = !hideCompletedTask;
-                              });
+                              _displayTextInputDialog(context);
                             },
                             child: Container(
-                              color: Color(0XFF6F8671).withOpacity(0.7),
-                              height: 40,
-                              width: 150,
-                              child: Center(
-                                child: Text(
-                                  (hideCompletedTask)
-                                      ? "Show Completed Items"
-                                      : "Hide Completed Items",
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                              color: Color(0XFF6F8671).withOpacity(0.3),
+                              height: 60,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.add,
+                                        color: Colors.white,
+                                        size: 30,
+                                      ),
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+                                      Text(
+                                        "New to-do",
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 22),
+                                      )
+                                    ],
+                                  ),
+                                  Icon(
+                                    Icons.star_border_outlined,
+                                    color: Colors.white,
+                                    size: 30,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      (hideCompletedTask)
-                          ? Container()
-                          : tasksListWidget(tasksList: completedTasks),
-                    ],
-                  ),
-                ))));
+                        ),
+                        tasksListWidget(tasksList: inCompleteTasks),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  hideCompletedTask = !hideCompletedTask;
+                                });
+                              },
+                              child: completedTasks.length == 0
+                                  ? Container()
+                                  : Container(
+                                      color: Color(0XFF6F8671).withOpacity(0.7),
+                                      height: 40,
+                                      width: 150,
+                                      child: Center(
+                                        child: Text(
+                                          (hideCompletedTask)
+                                              ? "Show Completed Items"
+                                              : "Hide Completed Items",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        (hideCompletedTask)
+                            ? Container()
+                            : tasksListWidget(tasksList: completedTasks),
+                      ],
+                    ),
+                  )))),
+        ));
   }
 
   Widget tasksListWidget(
