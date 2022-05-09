@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
+
 import 'package:todo_list/register_page.dart';
 
 import 'auth_service.dart';
@@ -147,25 +148,29 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     InkWell(
                                       onTap: () async {
-                                        final progress =
-                                            ProgressHUD.of(context);
-                                        progress.show();
-                                        final formState = formKey.currentState;
-                                        if (formState.validate()) {
-                                          User user = await AuthService()
-                                              .signInUser(
-                                                  email: email,
-                                                  password: password);
-                                          progress.dismiss();
-                                          if (user != null) {
-                                            Navigator.pushAndRemoveUntil(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        HomePage(
-                                                          user: user,
-                                                        )),
-                                                (route) => false);
+                                        if (email.isNotEmpty &&
+                                            password.isNotEmpty) {
+                                          final progress =
+                                              ProgressHUD.of(context);
+                                          progress.show();
+                                          final formState =
+                                              formKey.currentState;
+                                          if (formState.validate()) {
+                                            User user = await AuthService()
+                                                .signInUser(
+                                                    email: email,
+                                                    password: password);
+                                            progress.dismiss();
+                                            if (user != null) {
+                                              Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          HomePage(
+                                                            user: user,
+                                                          )),
+                                                  (route) => false);
+                                            }
                                           }
                                         }
                                       },

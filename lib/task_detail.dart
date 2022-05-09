@@ -245,22 +245,28 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   } else {
                                     return ListTile(
                                       leading: (subtasklist[index]
-                                              .completionStatus??false)
+                                                  .completionStatus ??
+                                              false)
                                           ? InkWell(
                                               onTap: () {
-                                                // SubTask task = SubTask(
-                                                //     completionStatus: true,
-                                                //     taskTitle:
-                                                //         subtasklist[index]
-                                                //             .taskTitle);
-                                                // FirebaseRepo(
-                                                //         idUser:
-                                                //             widget.userData.uid)
-                                                //     .uploadSubTasks(
-                                                //         widget.mainListIndex,
-                                                //         task,
-                                                //         widget.index);
-                                                // setState(() {});
+                                                subtasklist[index]
+                                                    .completionStatus = true;
+                                                SubTask task = SubTask(
+                                                    completionStatus:
+                                                        subtasklist[index]
+                                                            .completionStatus,
+                                                    taskTitle:
+                                                        subtasklist[index]
+                                                            .taskTitle);
+                                                setState(() {});
+                                                FirebaseRepo(
+                                                        idUser:
+                                                            widget.userData.uid)
+                                                    .updateSubTasks(
+                                                        widget.mainListIndex,
+                                                        task,
+                                                        widget.index,
+                                                        index);
                                               },
                                               child: Icon(Icons.check_box,
                                                   color: Colors.green,
@@ -268,19 +274,24 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                             )
                                           : InkWell(
                                               onTap: () {
-                                                // SubTask task = SubTask(
-                                                //     completionStatus: true,
-                                                //     taskTitle:
-                                                //         subtasklist[index]
-                                                //             .taskTitle);
-                                                // FirebaseRepo(
-                                                //         idUser:
-                                                //             widget.userData.uid)
-                                                //     .uploadSubTasks(
-                                                //         widget.mainListIndex,
-                                                //         task,
-                                                //         widget.index);
-                                                // setState(() {});
+                                                subtasklist[index]
+                                                    .completionStatus = false;
+                                                SubTask task = SubTask(
+                                                    completionStatus:
+                                                        subtasklist[index]
+                                                            .completionStatus,
+                                                    taskTitle:
+                                                        subtasklist[index]
+                                                            .taskTitle);
+                                                setState(() {});
+                                                FirebaseRepo(
+                                                        idUser:
+                                                            widget.userData.uid)
+                                                    .updateSubTasks(
+                                                        widget.mainListIndex,
+                                                        task,
+                                                        widget.index,
+                                                        index);
                                               },
                                               child: Icon(
                                                   Icons.check_box_outline_blank,
@@ -460,7 +471,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 onPressed: () async {
                   setState(() {
                     subTask.add(valueText);
-                    subtasklist.add(SubTask(taskTitle: valueText,completionStatus: false));
+                    subtasklist.add(
+                        SubTask(taskTitle: valueText, completionStatus: false));
                     SubTask task =
                         SubTask(completionStatus: false, taskTitle: valueText);
                     FirebaseRepo(idUser: widget.userData.uid).uploadSubTasks(

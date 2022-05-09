@@ -155,6 +155,25 @@ class FirebaseRepo {
     });
   }
 
+  Future updateSubTasks(
+      int i, SubTask subTask, int taskListIndex, int subTaskIndex) async {
+    String id = await docId(i);
+    String listId = await taskDocId(taskListIndex, id);
+    String subTaskId = await subTaskDocId(subTaskIndex, id, listId);
+    await refUsers
+        .doc(idUser)
+        .collection("TasksLists")
+        .doc(id)
+        .collection('Tasks')
+        .doc(listId)
+        .collection("SubTasks")
+        .doc(subTaskId)
+        .update({
+      'subTaskTitle': subTask.taskTitle,
+      'IsCompleted': subTask.completionStatus
+    });
+  }
+
   Future<List<String>> getTaskLists() async {
     final stream = await refUsers.doc(idUser).collection('TasksLists').get();
 
@@ -258,6 +277,23 @@ class FirebaseRepo {
         .collection('TasksLists')
         .doc(id)
         .collection('Tasks')
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      List list = querySnapshot.docs.toList();
+      return list[i].id;
+    }
+    return "0";
+  }
+
+  Future<String> subTaskDocId(int i, String id, String taskId) async {
+    print(i);
+    QuerySnapshot querySnapshot = await refUsers
+        .doc(idUser)
+        .collection('TasksLists')
+        .doc(id)
+        .collection('Tasks')
+        .doc(taskId)
+        .collection('SubTasks')
         .get();
     if (querySnapshot.docs.isNotEmpty) {
       List list = querySnapshot.docs.toList();

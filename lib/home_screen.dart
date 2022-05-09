@@ -87,9 +87,8 @@ class _HomePageState extends State<HomePage> {
                 child: Text('OK'),
                 onPressed: () {
                   setState(() {
-                   
                     tasksList.add(valueText);
-                     taskListLength.add(tasksList.length);
+                    taskListLength.add(tasksList.length);
 
                     FirebaseRepo(idUser: userData.uid)
                         .uploadTaskList(valueText);
@@ -106,58 +105,58 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return 
-         Scaffold(
-            appBar: AppBar(
-              leading: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => SignOutPage()));
-                  },
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=688&q=80"),
-                  ),
-                ),
-              ),
-              title: Text(userName??''),
-              backgroundColor: Color(0XFF6F8671),
-              actions: [
-                Icon(
-                  Icons.notifications_outlined,
-                  size: 30,
-                ),
-                SizedBox(
-                  width: 25,
-                ),
-                Icon(Icons.messenger_outline_outlined, size: 30),
-                SizedBox(
-                  width: 25,
-                ),
-                Icon(Icons.search, size: 30),
-                SizedBox(
-                  width: 10,
-                ),
-              ],
+    return Scaffold(
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SignOutPage()));
+            },
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(
+                  "https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=688&q=80"),
             ),
-            floatingActionButton: CircleAvatar(
-              radius: 30.0,
-              child: IconButton(
-                onPressed: () async {
-                  await _displayTextInputDialog(context);
-                },
-                icon: Center(
-                  child: Icon(
-                    Icons.add,
-                    size: 35,
-                  ),
-                ),
-              ),
+          ),
+        ),
+        title: Text(userName ?? ''),
+        backgroundColor: Color(0XFF6F8671),
+        actions: [
+          Icon(
+            Icons.notifications_outlined,
+            size: 30,
+          ),
+          SizedBox(
+            width: 25,
+          ),
+          Icon(Icons.messenger_outline_outlined, size: 30),
+          SizedBox(
+            width: 25,
+          ),
+          Icon(Icons.search, size: 30),
+          SizedBox(
+            width: 10,
+          ),
+        ],
+      ),
+      floatingActionButton: CircleAvatar(
+        radius: 30.0,
+        child: IconButton(
+          onPressed: () async {
+            await _displayTextInputDialog(context);
+          },
+          icon: Center(
+            child: Icon(
+              Icons.add,
+              size: 35,
             ),
-            body:(loading)
-        ? Center(child: CircularProgressIndicator()): SingleChildScrollView(
+          ),
+        ),
+      ),
+      body: (loading)
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
               child: Container(
                 child: Stack(
                   children: [
@@ -312,7 +311,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-          );
+    );
   }
 
   Widget tileWidget(String title, Icon icon, String number, {int index}) {
