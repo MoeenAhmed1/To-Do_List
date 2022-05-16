@@ -27,11 +27,34 @@ class FirebaseRepo {
     await refUsers.doc(idUser).set(user.toJson());
   }
 
-  Future uploadTaskList(String listTitle) async {
+  Future uploadTaskList(String listTitle, int index) async {
     await refUsers
         .doc(idUser)
         .collection('TasksLists')
-        .add({'listtitle': listTitle});
+        .add({'listtitle': listTitle, 'index': index});
+  }
+
+  Future updateTaskListIndex(int oldIndex, int newIndex) async {
+    String id = await docId(oldIndex);
+    await refUsers
+        .doc(idUser)
+        .collection('TasksLists')
+        .doc(id)
+        .update({'index': newIndex});
+  }
+
+  Future updateTaskList(String listTitle, int listId) async {
+    String id = await docId(listId);
+    await refUsers
+        .doc(idUser)
+        .collection('TasksLists')
+        .doc(id)
+        .update({'listtitle': listTitle});
+  }
+
+  Future deleteTaskList(int listId) async {
+    String id = await docId(listId);
+    await refUsers.doc(idUser).collection('TasksLists').doc(id).delete();
   }
 
   Future uploadTaskTitle(String taskTitle, bool isCompleted, int i) async {
@@ -65,6 +88,18 @@ class FirebaseRepo {
       'tasktitle': taskTitle,
       'completionstatus': isCompleted,
     });
+  }
+
+  Future deleteTask(int i, int taskListIndex) async {
+    String id = await docId(i);
+    String listId = await taskDocId(taskListIndex, id);
+    await refUsers
+        .doc(idUser)
+        .collection('TasksLists')
+        .doc(id)
+        .collection("Tasks")
+        .doc(listId)
+        .delete();
   }
 
   Future uploadTaskCompletionStatus(int i, bool isCompleted) async {
@@ -180,7 +215,12 @@ class FirebaseRepo {
     List list = stream.docs.toList();
     List<String> taskLists = [];
     for (int i = 0; i < list.length; i++) {
-      taskLists.add(list[i]['listtitle']);
+      taskLists.add('');
+    }
+    for (int i = 0; i < list.length; i++) {
+      int index = list[i]['index'];
+      //taskLists.add(list[i]['listtitle']);
+      taskLists[index] = list[i]['listtitle'];
     }
 
     return taskLists;

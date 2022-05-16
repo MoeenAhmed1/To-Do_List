@@ -243,14 +243,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       ),
                                     );
                                   } else {
+                                    print(subtasklist[index].completionStatus);
                                     return ListTile(
                                       leading: (subtasklist[index]
                                                   .completionStatus ??
-                                              false)
+                                              true)
                                           ? InkWell(
                                               onTap: () {
+                                                print("moeen");
                                                 subtasklist[index]
-                                                    .completionStatus = true;
+                                                    .completionStatus = false;
                                                 SubTask task = SubTask(
                                                     completionStatus:
                                                         subtasklist[index]
@@ -258,7 +260,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                                     taskTitle:
                                                         subtasklist[index]
                                                             .taskTitle);
-                                                setState(() {});
+                                                setState(() {
+                                                  subtasklist[index]
+                                                      .completionStatus = false;
+                                                });
                                                 FirebaseRepo(
                                                         idUser:
                                                             widget.userData.uid)
@@ -275,7 +280,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                           : InkWell(
                                               onTap: () {
                                                 subtasklist[index]
-                                                    .completionStatus = false;
+                                                    .completionStatus = true;
                                                 SubTask task = SubTask(
                                                     completionStatus:
                                                         subtasklist[index]
@@ -283,7 +288,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                                     taskTitle:
                                                         subtasklist[index]
                                                             .taskTitle);
-                                                setState(() {});
+                                                setState(() {
+                                                  subtasklist[index]
+                                                      .completionStatus = true;
+                                                });
                                                 FirebaseRepo(
                                                         idUser:
                                                             widget.userData.uid)
@@ -300,7 +308,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                             ),
                                       title: Text(
                                         subtasklist[index].taskTitle,
-                                        style: TextStyle(fontSize: 22),
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          decoration: (subtasklist[index]
+                                                  .completionStatus)
+                                              ? TextDecoration.lineThrough
+                                              : null,
+                                        ),
                                       ),
                                     );
                                   }

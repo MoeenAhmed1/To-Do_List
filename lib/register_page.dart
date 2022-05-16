@@ -17,6 +17,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   bool conPasswordVisible = false;
   String email = "";
   String password = "";
+  String confirmPassword = "";
   String name = "";
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -146,7 +147,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                         padding: const EdgeInsets.only(left: 8),
                                         child: TextFormField(
                                           obscureText: !conPasswordVisible,
-                                          onChanged: (value) {},
+                                          onChanged: (value) {
+                                            confirmPassword = value;
+                                          },
                                           validator: (value) {
                                             if (value == null ||
                                                 value.isEmpty) {
@@ -193,35 +196,49 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                   ),
                                   TextButton(
                                       onPressed: () async {
-                                        final progress =
-                                            ProgressHUD.of(context);
-                                        progress.show();
                                         final formState = formKey.currentState;
                                         if (formState.validate()) {
+                                          final progress =
+                                              ProgressHUD.of(context);
+                                          progress.show();
                                           User user = await AuthService()
                                               .signUpUser(
                                                   email: email,
                                                   password: password);
                                           progress.dismiss();
-                                          if (user != null) {
-                                            Navigator.pushAndRemoveUntil(
-                                                context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        HomePage(
-                                                          email: email,
-                                                          name: name,
-                                                          user: user,
-                                                        )),
-                                                (route) => false);
-                                            // Navigator.push(
-                                            //     context,
-                                            //     MaterialPageRoute(
-                                            //         builder: (context) => HomePage(
-                                            //               email: email,
-                                            //               name: name,
-                                            //               user: user,
-                                            //             )));
+                                          if (password
+                                                  .compareTo(confirmPassword) !=
+                                              0) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  "Confirm Password and Password does not match"),
+                                            ));
+                                          } else if (password.length < 8) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  "Password length must be greater or equal to 8"),
+                                            ));
+                                          } else {
+                                            if (user != null) {
+                                              Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          HomePage(
+                                                            email: email,
+                                                            name: name,
+                                                            user: user,
+                                                          )),
+                                                  (route) => false);
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                content: Text(
+                                                    "Error registering Please try again later"),
+                                              ));
+                                            }
                                           }
                                         }
                                       },

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:todo_list/login_screen.dart';
 
 class SignOutPage extends StatefulWidget {
-  const SignOutPage({Key key}) : super(key: key);
+  final String userName;
+  const SignOutPage({this.userName, Key key}) : super(key: key);
 
   @override
   _SignOutPageState createState() => _SignOutPageState();
@@ -64,7 +65,7 @@ class _SignOutPageState extends State<SignOutPage> {
                 radius: 50,
                 child: Center(
                   child: Text(
-                    "A",
+                    widget.userName.substring(0, 1),
                     style: TextStyle(fontSize: 30, color: Colors.white),
                   ),
                 ),
@@ -74,7 +75,7 @@ class _SignOutPageState extends State<SignOutPage> {
           SizedBox(
             height: 10,
           ),
-          Text("Ali", style: TextStyle(fontSize: 30)),
+          Text(widget.userName, style: TextStyle(fontSize: 30)),
           SizedBox(
             height: 10,
           ),

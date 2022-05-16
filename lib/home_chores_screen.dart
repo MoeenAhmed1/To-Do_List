@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_progress_hud/flutter_progress_hud.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:todo_list/dismissible_widget.dart';
 import 'package:todo_list/repo/firebase_repo.dart';
 import 'package:todo_list/task_detail.dart';
 
@@ -54,6 +55,54 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
     setState(() {
       loading = false;
     });
+  }
+
+  Future<void> _displayConfirmationDialog(
+      BuildContext context, int index, bool checkCompletedTaskList) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Are you sure you want to delete'),
+            actions: <Widget>[
+              FlatButton(
+                color: Colors.white,
+                textColor: Colors.red,
+                child: Text('CANCEL'),
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+              FlatButton(
+                color: Color(0XFF6F8671),
+                textColor: Colors.white,
+                child: Text('OK'),
+                onPressed: () {
+                  int i = 0;
+                  setState(() {
+                    if (checkCompletedTaskList) {
+                      i = tasks.indexOf(completedTasks[index]);
+                      tasks.remove(completedTasks[index]);
+                      completedTasks.removeAt(index);
+                    } else {
+                      i = tasks.indexOf(inCompleteTasks[index]);
+                      tasks.remove(inCompleteTasks[index]);
+                      inCompleteTasks.removeAt(index);
+                    }
+
+                    FirebaseRepo(idUser: widget.userData.uid)
+                        .deleteTask(widget.index, i);
+                  });
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+            ],
+          );
+        });
   }
 
   @override
@@ -135,7 +184,8 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                             ),
                           ),
                         ),
-                        tasksListWidget(tasksList: inCompleteTasks),
+                        tasksListWidget(
+                            tasksList: inCompleteTasks, completedTask: false),
                         SizedBox(
                           height: 10,
                         ),
@@ -172,11 +222,32 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                         ),
                         (hideCompletedTask)
                             ? Container()
-                            : tasksListWidget(tasksList: completedTasks),
+                            : tasksListWidget(
+                                tasksList: completedTasks, completedTask: true),
                       ],
                     ),
                   )))),
         ));
+  }
+
+  Future<bool> dismissItem(BuildContext context, int index,
+      DismissDirection direction, bool isComplete) async {
+    if (direction == DismissDirection.endToStart) {
+      await _displayConfirmationDialog(context, index, isComplete);
+      return true;
+    }
+    return false;
+
+    // switch (direction) {
+    //   case DismissDirection.endToStart:
+    //     Utils.showSnackBar(context, 'Chat has been deleted');
+    //     break;
+    //   case DismissDirection.startToEnd:
+    //     Utils.showSnackBar(context, 'Chat has been archived');
+    //     break;
+    //   default:
+    //     break;
+    // }
   }
 
   Widget tasksListWidget(
@@ -186,79 +257,86 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
       child: ListView.builder(
           itemCount: tasksList.length,
           itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(0, 3, 0, 3),
-              child: Container(
-                height: 60,
-                color: Colors.white,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () async {
-                            setState(() {
-                              loading = true;
-                            });
-                            await FirebaseRepo(idUser: widget.userData.uid)
-                                .updateTask(
-                                    tasksList[index].taskTitle,
-                                    !tasksList[index].completionStatus,
-                                    widget.index,
-                                    index);
-                            getTasks();
-                          },
-                          icon: Icon(
-                            (tasksList[index].completionStatus)
-                                ? Icons.check_box
-                                : Icons.check_box_outline_blank,
+            final item = tasksList[index];
+            return DismissibleWidget(
+              item: item,
+              confirmDismissed: (direction) {
+                dismissItem(context, index, direction, completedTask);
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 3, 0, 3),
+                child: Container(
+                  height: 60,
+                  color: Colors.white,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () async {
+                              setState(() {
+                                loading = true;
+                              });
+                              await FirebaseRepo(idUser: widget.userData.uid)
+                                  .updateTask(
+                                      tasksList[index].taskTitle,
+                                      !tasksList[index].completionStatus,
+                                      widget.index,
+                                      index);
+                              getTasks();
+                            },
+                            icon: Icon(
+                              (tasksList[index].completionStatus)
+                                  ? Icons.check_box
+                                  : Icons.check_box_outline_blank,
+                              color: Colors.grey,
+                              size: 30,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          Text(
+                            tasksList[index].taskTitle,
+                            style: TextStyle(
+                                decoration: (tasksList[index].completionStatus)
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                color: Colors.black,
+                                fontSize: 18),
+                          )
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.star_border_outlined,
                             color: Colors.grey,
                             size: 30,
                           ),
-                        ),
-                        SizedBox(
-                          width: 20,
-                        ),
-                        Text(
-                          tasksList[index].taskTitle,
-                          style: TextStyle(
-                              decoration: (tasksList[index].completionStatus)
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              color: Colors.black,
-                              fontSize: 18),
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star_border_outlined,
-                          color: Colors.grey,
-                          size: 30,
-                        ),
-                        IconButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => TaskDetailPage(
-                                            userData: widget.userData,
-                                            title: tasksList[index].taskTitle,
-                                            index: index,
-                                            mainListIndex: widget.index,
-                                            task: tasksList[index],
-                                          )));
-                            },
-                            icon: Icon(
-                              Icons.navigate_next,
-                              color: Colors.grey,
-                              size: 30,
-                            ))
-                      ],
-                    ),
-                  ],
+                          IconButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => TaskDetailPage(
+                                              userData: widget.userData,
+                                              title: tasksList[index].taskTitle,
+                                              index: index,
+                                              mainListIndex: widget.index,
+                                              task: tasksList[index],
+                                            )));
+                              },
+                              icon: Icon(
+                                Icons.navigate_next,
+                                color: Colors.grey,
+                                size: 30,
+                              ))
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -297,13 +375,15 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                 textColor: Colors.white,
                 child: Text('OK'),
                 onPressed: () {
-                  setState(() {
-                    FirebaseRepo(idUser: widget.userData.uid)
-                        .uploadTaskTitle(valueText, false, widget.index);
-                    getTasks();
+                  if (valueText.isNotEmpty) {
+                    setState(() {
+                      FirebaseRepo(idUser: widget.userData.uid)
+                          .uploadTaskTitle(valueText, false, widget.index);
+                      getTasks();
 
-                    Navigator.pop(context);
-                  });
+                      Navigator.pop(context);
+                    });
+                  }
                 },
               ),
             ],

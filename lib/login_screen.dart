@@ -148,29 +148,31 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     InkWell(
                                       onTap: () async {
-                                        if (email.isNotEmpty &&
-                                            password.isNotEmpty) {
+                                        final formState = formKey.currentState;
+                                        if (formState.validate()) {
                                           final progress =
                                               ProgressHUD.of(context);
                                           progress.show();
-                                          final formState =
-                                              formKey.currentState;
-                                          if (formState.validate()) {
-                                            User user = await AuthService()
-                                                .signInUser(
-                                                    email: email,
-                                                    password: password);
-                                            progress.dismiss();
-                                            if (user != null) {
-                                              Navigator.pushAndRemoveUntil(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          HomePage(
-                                                            user: user,
-                                                          )),
-                                                  (route) => false);
-                                            }
+                                          User user = await AuthService()
+                                              .signInUser(
+                                                  email: email,
+                                                  password: password);
+                                          progress.dismiss();
+                                          if (user != null) {
+                                            Navigator.pushAndRemoveUntil(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        HomePage(
+                                                          user: user,
+                                                        )),
+                                                (route) => false);
+                                          } else {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                              content: Text(
+                                                  "Email or Password is not Correct"),
+                                            ));
                                           }
                                         }
                                       },

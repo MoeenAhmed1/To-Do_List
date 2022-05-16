@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_list/dismissible_widget.dart';
 import 'package:todo_list/model/user_model.dart';
 import 'package:todo_list/repo/firebase_repo.dart';
 import 'package:todo_list/sign_out.dart';
@@ -26,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   String valueText = "";
   TextEditingController _textFieldController = TextEditingController();
   bool loading = true;
+  bool isCanceled = false;
   List<int> taskListLength = [];
   @override
   void initState() {
@@ -44,10 +46,11 @@ class _HomePageState extends State<HomePage> {
   getUserName() async {
     userName = await FirebaseRepo(idUser: userData.uid).getUserName();
     tasksList = await FirebaseRepo(idUser: userData.uid).getTaskLists();
-    for (int i = 0; i < tasksList.length; i++) {
-      final list = await FirebaseRepo(idUser: userData.uid).getTaskDetails(i);
-      taskListLength.add(list.length);
-    }
+    print(tasksList.length);
+    // for (int i = 0; i < tasksList.length; i++) {
+    //   final list = await FirebaseRepo(idUser: userData.uid).getTaskDetails(i);
+    //   taskListLength.add(list.length);
+    // }
 
     // await FirebaseRepo(idUser: userData.uid).getSubTasks(0, 0);
     setState(() {
@@ -55,7 +58,46 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _displayTextInputDialog(BuildContext context) async {
+  Future<void> _displayConfirmationDialog(
+      BuildContext context, int index) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Are you sure you want to delete'),
+            actions: <Widget>[
+              FlatButton(
+                color: Colors.white,
+                textColor: Colors.red,
+                child: Text('CANCEL'),
+                onPressed: () {
+                  setState(() {
+                    isCanceled = true;
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+              FlatButton(
+                color: Color(0XFF6F8671),
+                textColor: Colors.white,
+                child: Text('OK'),
+                onPressed: () {
+                  setState(() {
+                    tasksList.removeAt(index);
+                    FirebaseRepo(idUser: widget.user.uid).deleteTaskList(index);
+                  });
+                  setState(() {
+                    isCanceled = false;
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<void> _displayTextInputDialog(BuildContext context, int index) async {
     return showDialog(
         context: context,
         builder: (context) {
@@ -86,16 +128,18 @@ class _HomePageState extends State<HomePage> {
                 textColor: Colors.white,
                 child: Text('OK'),
                 onPressed: () {
-                  setState(() {
-                    tasksList.add(valueText);
-                    taskListLength.add(tasksList.length);
+                  if (valueText.isNotEmpty) {
+                    setState(() {
+                      tasksList.add(valueText);
+                      taskListLength.add(tasksList.length);
 
-                    FirebaseRepo(idUser: userData.uid)
-                        .uploadTaskList(valueText);
-                    _textFieldController.clear();
+                      FirebaseRepo(idUser: userData.uid)
+                          .uploadTaskList(valueText, index);
+                      _textFieldController.clear();
 
-                    Navigator.pop(context);
-                  });
+                      Navigator.pop(context);
+                    });
+                  }
                 },
               ),
             ],
@@ -111,8 +155,12 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(8.0),
           child: InkWell(
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SignOutPage()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => SignOutPage(
+                            userName: userName,
+                          )));
             },
             child: CircleAvatar(
               backgroundImage: NetworkImage(
@@ -144,7 +192,7 @@ class _HomePageState extends State<HomePage> {
         radius: 30.0,
         child: IconButton(
           onPressed: () async {
-            await _displayTextInputDialog(context);
+            await _displayTextInputDialog(context, tasksList.length);
           },
           icon: Center(
             child: Icon(
@@ -185,126 +233,40 @@ class _HomePageState extends State<HomePage> {
                             "0"),
                         Container(
                           height: 60.0 * tasksList.length,
-                          child: ListView.builder(
+                          child: ReorderableListView.builder(
                               itemCount: tasksList.length,
+                              onReorder: (oldIndex, newIndex) => setState(() {
+                                    final index = newIndex > oldIndex
+                                        ? newIndex - 1
+                                        : newIndex;
+                                    print(oldIndex);
+                                    print(index);
+
+                                    final task = tasksList.removeAt(oldIndex);
+                                    tasksList.insert(index, task);
+                                    // FirebaseRepo(idUser: userData.uid)
+                                    //     .updateTaskListIndex(oldIndex, index);
+                                  }),
                               itemBuilder: (context, index) {
-                                return tileWidget(
-                                    tasksList[index],
-                                    Icon(
-                                      Icons.task,
-                                      color: Colors.grey,
-                                    ),
-                                    '0',
-                                    index: index);
+                                final item = tasksList[index];
+
+                                return DismissibleWidget(
+                                  key: ValueKey(item),
+                                  item: item,
+                                  child: tileWidget(
+                                      tasksList[index],
+                                      Icon(
+                                        Icons.task,
+                                        color: Colors.grey,
+                                      ),
+                                      '0',
+                                      index: index),
+                                  confirmDismissed: (direction) async {
+                                    dismissItem(context, index, direction);
+                                  },
+                                );
                               }),
                         ),
-                        // tileWidget(
-                        //     "Groceries",
-                        //     Icon(
-                        //       Icons.group,
-                        //       color: Colors.grey,
-                        //     ),
-                        //     "8"),
-                        // tileWidget(
-                        //     "Home Chores",
-                        //     Icon(
-                        //       Icons.group,
-                        //       color: Colors.grey,
-                        //     ),
-                        //     "5"),
-                        // tileWidget(
-                        //     "Bills",
-                        //     Icon(
-                        //       Icons.list,
-                        //       color: Colors.grey,
-                        //     ),
-                        //     "2"),
-                        //           Container(
-                        //             color: (workFolderOpen) ? Colors.grey[300] : null,
-                        //             child: dropDownWidget(
-                        //                 "Work",
-                        //                 Icon(
-                        //                   Icons.folder_open_outlined,
-                        //                   color: Colors.blue,
-                        //                 ), () {
-                        //               setState(() {
-                        //                 workFolderOpen = !workFolderOpen;
-                        //               });
-                        //             }, workFolderOpen),
-                        //           ),
-                        //           (workFolderOpen)
-                        //               ? Padding(
-                        //                   padding: EdgeInsets.all(10),
-                        //                   child: Column(
-                        //                     children: [
-                        //                       tileWidget(
-                        //                           "Goodin House",
-                        //                           Icon(
-                        //                             Icons.group,
-                        //                             color: Colors.grey,
-                        //                           ),
-                        //                           "11"),
-                        //                       tileWidget(
-                        //                           "Martin's Staircase Renovation",
-                        //                           Icon(
-                        //                             Icons.group,
-                        //                             color: Colors.grey,
-                        //                           ),
-                        //                           "6"),
-                        //                       tileWidget(
-                        //                           "Office Admin",
-                        //                           Icon(
-                        //                             Icons.group,
-                        //                             color: Colors.grey,
-                        //                           ),
-                        //                           "3"),
-                        //                     ],
-                        //                   ),
-                        //                 )
-                        //               : Container(),
-                        //           Container(
-                        //             color: (cookingFolderOpen) ? Colors.grey[300] : null,
-                        //             child: dropDownWidget(
-                        //                 "Cooking",
-                        //                 Icon(
-                        //                   Icons.folder_open_outlined,
-                        //                   color: Colors.blue,
-                        //                 ), () {
-                        //               setState(() {
-                        //                 cookingFolderOpen = !cookingFolderOpen;
-                        //               });
-                        //             }, cookingFolderOpen),
-                        //           ),
-                        //           (cookingFolderOpen)
-                        //               ? Padding(
-                        //                   padding: EdgeInsets.all(10),
-                        //                   child: Column(
-                        //                     children: [
-                        //                       tileWidget(
-                        //                           "Steak",
-                        //                           Icon(
-                        //                             Icons.group,
-                        //                             color: Colors.grey,
-                        //                           ),
-                        //                           "11"),
-                        //                       tileWidget(
-                        //                           "Burger",
-                        //                           Icon(
-                        //                             Icons.group,
-                        //                             color: Colors.grey,
-                        //                           ),
-                        //                           "6"),
-                        //                       tileWidget(
-                        //                           "Rice",
-                        //                           Icon(
-                        //                             Icons.group,
-                        //                             color: Colors.grey,
-                        //                           ),
-                        //                           "3"),
-                        //                     ],
-                        //                   ),
-                        //                 )
-                        //               : Container(),
                       ],
                     ),
                   ],
@@ -312,6 +274,32 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
     );
+  }
+
+  Future<bool> dismissItem(
+    BuildContext context,
+    int index,
+    DismissDirection direction,
+  ) async {
+    if (direction == DismissDirection.endToStart) {
+      await _displayConfirmationDialog(context, index);
+      if (isCanceled == false) {
+        return true;
+      }
+      return false;
+    }
+    return false;
+
+    // switch (direction) {
+    //   case DismissDirection.endToStart:
+    //     Utils.showSnackBar(context, 'Chat has been deleted');
+    //     break;
+    //   case DismissDirection.startToEnd:
+    //     Utils.showSnackBar(context, 'Chat has been archived');
+    //     break;
+    //   default:
+    //     break;
+    // }
   }
 
   Widget tileWidget(String title, Icon icon, String number, {int index}) {
