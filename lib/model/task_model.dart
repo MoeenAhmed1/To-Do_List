@@ -4,7 +4,7 @@ class TaskModel {
   String taskTitle;
   DateTime dueDate;
   bool completionStatus;
-  String reminderAt;
+  DateTime reminderAt;
   String notes;
   List<SubTask> subTasks;
   List<String> filePaths;

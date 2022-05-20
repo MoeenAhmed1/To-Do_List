@@ -3,6 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list/dismissible_widget.dart';
 import 'package:todo_list/model/user_model.dart';
+import 'package:todo_list/photo_list_page.dart';
 import 'package:todo_list/repo/firebase_repo.dart';
 import 'package:todo_list/sign_out.dart';
 
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   UserData userData;
   String userName;
   List<String> tasksList = [];
+  List<String> photoList = [];
   String valueText = "";
   TextEditingController _textFieldController = TextEditingController();
   bool loading = true;
@@ -46,6 +48,7 @@ class _HomePageState extends State<HomePage> {
   getUserName() async {
     userName = await FirebaseRepo(idUser: userData.uid).getUserName();
     tasksList = await FirebaseRepo(idUser: userData.uid).getTaskLists();
+    photoList = await FirebaseRepo(idUser: userData.uid).getPhotoLists();
     print(tasksList.length);
     // for (int i = 0; i < tasksList.length; i++) {
     //   final list = await FirebaseRepo(idUser: userData.uid).getTaskDetails(i);
@@ -97,7 +100,8 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  Future<void> _displayTextInputDialog(BuildContext context, int index) async {
+  Future<void> _displayTextInputDialog(BuildContext context, int index,
+      {bool isphotoList}) async {
     return showDialog(
         context: context,
         builder: (context) {
@@ -128,17 +132,31 @@ class _HomePageState extends State<HomePage> {
                 textColor: Colors.white,
                 child: Text('OK'),
                 onPressed: () {
-                  if (valueText.isNotEmpty) {
-                    setState(() {
-                      tasksList.add(valueText);
-                      taskListLength.add(tasksList.length);
+                  if (isphotoList == true) {
+                    if (valueText.isNotEmpty) {
+                      setState(() {
+                        photoList.add(valueText);
+                        //taskListLength.add(tasksList.length);
 
-                      FirebaseRepo(idUser: userData.uid)
-                          .uploadTaskList(valueText, index);
-                      _textFieldController.clear();
+                        FirebaseRepo(idUser: userData.uid)
+                            .uploadPhotoList(valueText);
+                        _textFieldController.clear();
+                        Navigator.pop(context);
+                      });
+                    }
+                  } else {
+                    if (valueText.isNotEmpty) {
+                      setState(() {
+                        tasksList.add(valueText);
+                        taskListLength.add(tasksList.length);
 
-                      Navigator.pop(context);
-                    });
+                        FirebaseRepo(idUser: userData.uid)
+                            .uploadTaskList(valueText, index);
+                        _textFieldController.clear();
+
+                        Navigator.pop(context);
+                      });
+                    }
                   }
                 },
               ),
@@ -171,37 +189,26 @@ class _HomePageState extends State<HomePage> {
         title: Text(userName ?? ''),
         backgroundColor: Color(0XFF6F8671),
         actions: [
-          Icon(
-            Icons.notifications_outlined,
-            size: 30,
-          ),
-          SizedBox(
-            width: 25,
-          ),
-          Icon(Icons.messenger_outline_outlined, size: 30),
-          SizedBox(
-            width: 25,
-          ),
           Icon(Icons.search, size: 30),
           SizedBox(
             width: 10,
           ),
         ],
       ),
-      floatingActionButton: CircleAvatar(
-        radius: 30.0,
-        child: IconButton(
-          onPressed: () async {
-            await _displayTextInputDialog(context, tasksList.length);
-          },
-          icon: Center(
-            child: Icon(
-              Icons.add,
-              size: 35,
-            ),
-          ),
-        ),
-      ),
+      // floatingActionButton: CircleAvatar(
+      //   radius: 30.0,
+      //   child: IconButton(
+      //     onPressed: () async {
+      //       await _displayTextInputDialog(context, tasksList.length);
+      //     },
+      //     icon: Center(
+      //       child: Icon(
+      //         Icons.add,
+      //         size: 35,
+      //       ),
+      //     ),
+      //   ),
+      // ),
       body: (loading)
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -210,20 +217,20 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Column(
                       children: [
-                        tileWidget(
-                            "Inbox",
-                            Icon(
-                              Icons.all_inbox_rounded,
-                              color: Colors.blue,
-                            ),
-                            "0"),
-                        tileWidget(
-                            "Starred",
-                            Icon(
-                              Icons.star_border,
-                              color: Colors.red,
-                            ),
-                            "0"),
+                        // tileWidget(
+                        //     "Inbox",
+                        //     Icon(
+                        //       Icons.all_inbox_rounded,
+                        //       color: Colors.blue,
+                        //     ),
+                        //     "0"),
+                        // tileWidget(
+                        //     "Starred",
+                        //     Icon(
+                        //       Icons.star_border,
+                        //       color: Colors.red,
+                        //     ),
+                        //     "0"),
                         tileWidget(
                             "Today",
                             Icon(
@@ -231,23 +238,81 @@ class _HomePageState extends State<HomePage> {
                               color: Colors.green,
                             ),
                             "0"),
+                        SizedBox(
+                          height: 10,
+                        ),
                         Container(
-                          height: 60.0 * tasksList.length,
-                          child: ReorderableListView.builder(
-                              itemCount: tasksList.length,
-                              onReorder: (oldIndex, newIndex) => setState(() {
-                                    final index = newIndex > oldIndex
-                                        ? newIndex - 1
-                                        : newIndex;
-                                    print(oldIndex);
-                                    print(index);
+                          height: 40,
+                          color: Color(0XFF6F8671).withOpacity(0.7),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Center(
+                                child: Text(
+                                  "Tasks List",
+                                  style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 60.0 * (tasksList.length + 1),
+                          child: ListView.builder(
+                              itemCount: (tasksList.length) + 1,
+                              // onReorder: (oldIndex, newIndex) => setState(() {
+                              //       final index = newIndex > oldIndex
+                              //           ? newIndex - 1
+                              //           : newIndex;
+                              //       print(oldIndex);
+                              //       print(index);
 
-                                    final task = tasksList.removeAt(oldIndex);
-                                    tasksList.insert(index, task);
-                                    // FirebaseRepo(idUser: userData.uid)
-                                    //     .updateTaskListIndex(oldIndex, index);
-                                  }),
+                              //       final task = tasksList.removeAt(oldIndex);
+                              //       tasksList.insert(index, task);
+                              //       // FirebaseRepo(idUser: userData.uid)
+                              //       //     .updateTaskListIndex(oldIndex, index);
+                              //     }),
                               itemBuilder: (context, index) {
+                                if (index == tasksList.length) {
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          width: 50,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(50),
+                                            color: Colors.blue,
+                                            // boxShadow: [
+                                            //   BoxShadow(
+                                            //       color: Colors.blue,
+                                            //       spreadRadius: 3),
+                                            // ],
+                                          ),
+                                          child: IconButton(
+                                            color: Colors.white,
+                                            onPressed: () async {
+                                              await _displayTextInputDialog(
+                                                  context, tasksList.length,
+                                                  isphotoList: false);
+                                            },
+                                            icon: Center(
+                                              child: Icon(
+                                                Icons.add,
+                                                size: 35,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
                                 final item = tasksList[index];
 
                                 return DismissibleWidget(
@@ -260,9 +325,105 @@ class _HomePageState extends State<HomePage> {
                                         color: Colors.grey,
                                       ),
                                       '0',
-                                      index: index),
+                                      index: index,
+                                      isPhotoList: false),
                                   confirmDismissed: (direction) async {
                                     dismissItem(context, index, direction);
+                                  },
+                                );
+                              }),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          height: 40,
+                          color: Color(0XFF6F8671).withOpacity(0.7),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Center(
+                                child: Text(
+                                  "Photo List",
+                                  style: TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 60.0 * (photoList.length + 1),
+                          child: ListView.builder(
+                              itemCount: (photoList.length) + 1,
+                              // onReorder: (oldIndex, newIndex) => setState(() {
+                              //       final index = newIndex > oldIndex
+                              //           ? newIndex - 1
+                              //           : newIndex;
+                              //       print(oldIndex);
+                              //       print(index);
+
+                              //       final task = tasksList.removeAt(oldIndex);
+                              //       tasksList.insert(index, task);
+                              //       // FirebaseRepo(idUser: userData.uid)
+                              //       //     .updateTaskListIndex(oldIndex, index);
+                              //     }),
+                              itemBuilder: (context, index) {
+                                if (index == photoList.length) {
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Container(
+                                          width: 50,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(50),
+                                            color: Colors.blue,
+                                            // boxShadow: [
+                                            //   BoxShadow(
+                                            //       color: Colors.blue,
+                                            //       spreadRadius: 3),
+                                            // ],
+                                          ),
+                                          child: IconButton(
+                                            color: Colors.white,
+                                            onPressed: () async {
+                                              await _displayTextInputDialog(
+                                                  context, photoList.length,
+                                                  isphotoList: true);
+                                            },
+                                            icon: Center(
+                                              child: Icon(
+                                                Icons.add,
+                                                size: 35,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                final item = photoList[index];
+
+                                return DismissibleWidget(
+                                  key: ValueKey(item),
+                                  item: item,
+                                  child: tileWidget(
+                                      photoList[index],
+                                      Icon(
+                                        Icons.photo,
+                                        color: Colors.grey,
+                                      ),
+                                      '0',
+                                      index: index,
+                                      isPhotoList: true),
+                                  confirmDismissed: (direction) async {
+                                    //dismissItem(context, index, direction);
                                   },
                                 );
                               }),
@@ -289,30 +450,31 @@ class _HomePageState extends State<HomePage> {
       return false;
     }
     return false;
-
-    // switch (direction) {
-    //   case DismissDirection.endToStart:
-    //     Utils.showSnackBar(context, 'Chat has been deleted');
-    //     break;
-    //   case DismissDirection.startToEnd:
-    //     Utils.showSnackBar(context, 'Chat has been archived');
-    //     break;
-    //   default:
-    //     break;
-    // }
   }
 
-  Widget tileWidget(String title, Icon icon, String number, {int index}) {
+  Widget tileWidget(String title, Icon icon, String number,
+      {int index, bool isPhotoList}) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => HomeChoresScreen(
-                      userData: userData,
-                      title: title,
-                      index: index,
-                    )));
+        if (isPhotoList) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PhotoListPage(
+                        userData: userData,
+                        title: title,
+                        index: index,
+                      )));
+        } else {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => HomeChoresScreen(
+                        userData: userData,
+                        title: title,
+                        index: index,
+                      )));
+        }
       },
       child: Padding(
         padding: const EdgeInsets.fromLTRB(15, 20, 8, 8),
@@ -336,42 +498,6 @@ class _HomePageState extends State<HomePage> {
               number,
               style: TextStyle(color: Colors.grey, fontSize: 20),
             )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget dropDownWidget(String title, Icon icon, Function ontap, bool check) {
-    return InkWell(
-      onTap: ontap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(15, 20, 8, 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                icon,
-                SizedBox(
-                  width: 30,
-                ),
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 22),
-                ),
-              ],
-            ),
-            //SizedBox(width: 200,),
-            (check)
-                ? Icon(
-                    Icons.keyboard_arrow_down_sharp,
-                    color: Colors.grey,
-                  )
-                : Icon(
-                    Icons.keyboard_arrow_left_outlined,
-                    color: Colors.grey,
-                  )
           ],
         ),
       ),

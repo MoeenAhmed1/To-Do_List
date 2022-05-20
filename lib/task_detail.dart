@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_plugin_pdf_viewer/flutter_plugin_pdf_viewer.dart';
 import 'package:intl/intl.dart';
 import 'package:todo_list/file_viewer.dart';
+import 'package:todo_list/model/photoitem_model.dart';
 import 'package:todo_list/model/subtask_model.dart';
 import 'package:todo_list/model/task_model.dart';
 import 'package:todo_list/model/user_model.dart';
+import 'package:todo_list/notification_service/notification.dart';
 import 'package:todo_list/repo/firebase_repo.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -16,8 +18,16 @@ class TaskDetailPage extends StatefulWidget {
   final int index;
   final int mainListIndex;
   TaskModel task;
+  PhotoItemModel photoItem;
+  bool isPhotoPage = false;
   TaskDetailPage(
-      {this.userData, this.title, this.index, this.mainListIndex, this.task});
+      {this.userData,
+      this.title,
+      this.index,
+      this.mainListIndex,
+      this.task,
+      this.photoItem,
+      this.isPhotoPage});
 
   @override
   _TaskDetailPageState createState() => _TaskDetailPageState();
@@ -26,25 +36,74 @@ class TaskDetailPage extends StatefulWidget {
 class _TaskDetailPageState extends State<TaskDetailPage> {
   List<String> subTask = [];
   List<TaskModel> tasks = [];
+  List<PhotoItemModel> photoItemList = [];
   String valueText = "";
   String displayDate = "";
   String notes = "";
   String uploadPath;
   DateTime date;
   TimeOfDay selectedTime = TimeOfDay.now();
-  String DisplayTime;
+  String DisplayTime = "";
   TextEditingController _textFieldController = TextEditingController();
   TextEditingController _notesFieldController = TextEditingController();
   List<PlatformFile> fileList = [];
   bool loading = true;
   List<SubTask> subtasklist = [];
   List urlList = [];
+  bool isDueDate = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    isDueDate = false;
+    if (widget.isPhotoPage) {
+      getPhotoItemDetails();
+    } else {
+      getSubTask();
+    }
+  }
 
-    getSubTask();
+  getPhotoItemDetails() async {
+    photoItemList = await FirebaseRepo(idUser: widget.userData.uid)
+        .getPhotoItemDetails(widget.mainListIndex);
+    subtasklist = await FirebaseRepo(idUser: widget.userData.uid)
+        .getSubTasks(widget.mainListIndex, widget.index, isPhotoList: true);
+    urlList = await FirebaseRepo(idUser: widget.userData.uid)
+        .getFiles(widget.mainListIndex, widget.index, isPhotoList: true);
+    widget.photoItem = photoItemList[widget.index];
+    if (widget.photoItem.notes != null &&
+        !widget.photoItem.notes.contains('null')) {
+      _notesFieldController.text = widget.photoItem.notes;
+    } else if (widget.photoItem.notes.contains('null')) {
+      _notesFieldController.clear();
+    } else {
+      _notesFieldController.text = widget.photoItem.notes;
+    }
+    if (widget.photoItem.reminderAt != null &&
+        widget.photoItem.reminderAt != 'null') {
+      DisplayTime = DateFormat.yMd().format(widget.photoItem.reminderAt) +
+          " " +
+          DateFormat.jm().format(widget.photoItem.reminderAt);
+    }
+    if (widget.photoItem.reminderAt == 'null') {
+      DisplayTime = '';
+    }
+    if (widget.photoItem.dueDate != null &&
+        widget.photoItem.dueDate.year != 1960) {
+      DateTime checkDate = DateTime.now();
+      if (DateFormat.yMd().format(checkDate) ==
+          DateFormat.yMd().format(widget.photoItem.dueDate)) {
+        setState(() {
+          isDueDate = true;
+        });
+      }
+
+      displayDate = DateFormat.yMMMEd().format(widget.photoItem.dueDate);
+    }
+
+    setState(() {
+      loading = false;
+    });
   }
 
   getSubTask() async {
@@ -62,13 +121,23 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     } else {
       _notesFieldController.text = widget.task.notes;
     }
-    if (widget.task.reminderAt != null || widget.task.reminderAt != 'null') {
-      DisplayTime = widget.task.reminderAt;
+    if (widget.task.reminderAt != null && widget.task.reminderAt != 'null') {
+      DisplayTime = DateFormat.yMd().format(widget.task.reminderAt) +
+          " " +
+          DateFormat.jm()
+              .format(widget.task.reminderAt); //widget.task.reminderAt;
     }
     if (widget.task.reminderAt == 'null') {
       DisplayTime = '';
     }
-    if (widget.task.dueDate != null || widget.task.dueDate.year != 1960) {
+    if (widget.task.dueDate != null && widget.task.dueDate.year != 1960) {
+      DateTime checkDate = DateTime.now();
+      if (DateFormat.yMd().format(checkDate) ==
+          DateFormat.yMd().format(widget.task.dueDate)) {
+        setState(() {
+          isDueDate = true;
+        });
+      }
       displayDate = DateFormat.yMMMEd().format(widget.task.dueDate);
     }
 
@@ -107,8 +176,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               onTap: () {
                 FocusScope.of(context).requestFocus(new FocusNode());
                 notes = _notesFieldController.text;
-                FirebaseRepo(idUser: widget.userData.uid)
-                    .uploadTaskNotes(widget.mainListIndex, notes, widget.index);
+                FirebaseRepo(idUser: widget.userData.uid).uploadTaskNotes(
+                    widget.mainListIndex, notes, widget.index,
+                    isPhotoList: widget.isPhotoPage);
                 if (notes.isEmpty) {
                   _notesFieldController.clear();
                 }
@@ -137,13 +207,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
                               FirebaseRepo(idUser: widget.userData.uid)
                                   .uploadTaskDueDate(
-                                      widget.mainListIndex, date, widget.index);
+                                      widget.mainListIndex, date, widget.index,
+                                      isPhotoList: widget.isPhotoPage);
+                              setState(() {
+                                isDueDate = false;
+                              });
                             },
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.calendar_today_outlined,
-                                  color: Colors.blue,
+                                  color: (isDueDate) ? Colors.red : Colors.blue,
                                 ),
                                 SizedBox(
                                   width: 20,
@@ -153,7 +227,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       ? "Add Due Date"
                                       : "Due $displayDate",
                                   style: TextStyle(
-                                      fontSize: 22, color: Colors.blue),
+                                      fontSize: 22,
+                                      color: (isDueDate)
+                                          ? Colors.red
+                                          : Colors.blue),
                                 ),
                               ],
                             ),
@@ -163,6 +240,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           ),
                           InkWell(
                             onTap: () async {
+                              final DateTime reminderDate =
+                                  await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2015),
+                                      lastDate: DateTime(2030));
+
                               final TimeOfDay timeOfDay = await showTimePicker(
                                 context: context,
                                 initialTime: selectedTime,
@@ -171,12 +255,36 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               if (timeOfDay != null &&
                                   timeOfDay != selectedTime) {
                                 setState(() {
-                                  DisplayTime = timeOfDay.toString().substring(
-                                      10, timeOfDay.toString().length - 1);
+                                  DisplayTime = DateFormat.yMd()
+                                          .format(reminderDate) +
+                                      " " +
+                                      timeOfDay.toString().substring(
+                                          10, timeOfDay.toString().length - 1);
                                 });
+                                DateTime reminderAt = DateTime(
+                                    reminderDate.year,
+                                    reminderDate.month,
+                                    reminderDate.day,
+                                    timeOfDay.hour,
+                                    timeOfDay.minute);
+
                                 FirebaseRepo(idUser: widget.userData.uid)
                                     .uploadTaskReminderAt(widget.mainListIndex,
-                                        timeOfDay, widget.index);
+                                        reminderAt, widget.index,
+                                        isPhotoList: widget.isPhotoPage);
+                                if (widget.isPhotoPage) {
+                                  PushNotification().notifyUser(
+                                      "Photo List",
+                                      widget.index,
+                                      "Task Reminder",
+                                      reminderAt);
+                                } else {
+                                  PushNotification().notifyUser(
+                                      widget.title,
+                                      widget.index,
+                                      "Task Reminder",
+                                      reminderAt);
+                                }
                               }
                             },
                             child: Row(
@@ -191,7 +299,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                 Text(
                                   "Remind me at $DisplayTime",
                                   style: TextStyle(
-                                      fontSize: 22, color: Colors.blue),
+                                      fontSize: 18, color: Colors.blue),
                                 ),
                               ],
                             ),
@@ -199,25 +307,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           SizedBox(
                             height: 20,
                           ),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(
-                                width: 20,
-                              ),
-                              Text(
-                                "Never Repeat",
-                                style:
-                                    TextStyle(fontSize: 22, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 20,
-                          ),
+                          // Row(
+                          //   children: [
+                          //     Icon(
+                          //       Icons.access_time,
+                          //       color: Colors.grey,
+                          //     ),
+                          //     SizedBox(
+                          //       width: 20,
+                          //     ),
+                          //     Text(
+                          //       "Never Repeat",
+                          //       style:
+                          //           TextStyle(fontSize: 22, color: Colors.grey),
+                          //     ),
+                          //   ],
+                          // ),
+                          // SizedBox(
+                          //   height: 20,
+                          // ),
                           Divider(
                             thickness: 2,
                           ),
@@ -243,14 +351,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       ),
                                     );
                                   } else {
-                                    print(subtasklist[index].completionStatus);
                                     return ListTile(
                                       leading: (subtasklist[index]
                                                   .completionStatus ??
                                               true)
                                           ? InkWell(
                                               onTap: () {
-                                                print("moeen");
                                                 subtasklist[index]
                                                     .completionStatus = false;
                                                 SubTask task = SubTask(
@@ -271,7 +377,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                                         widget.mainListIndex,
                                                         task,
                                                         widget.index,
-                                                        index);
+                                                        index,
+                                                        isPhotoList:
+                                                            widget.isPhotoPage);
                                               },
                                               child: Icon(Icons.check_box,
                                                   color: Colors.green,
@@ -299,7 +407,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                                         widget.mainListIndex,
                                                         task,
                                                         widget.index,
-                                                        index);
+                                                        index,
+                                                        isPhotoList:
+                                                            widget.isPhotoPage);
                                               },
                                               child: Icon(
                                                   Icons.check_box_outline_blank,
@@ -446,9 +556,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     await uploadTask.whenComplete(() async {
       uploadPath = await uploadTask.snapshot.ref.getDownloadURL();
       //File file = File.fromUri(Uri.file(uploadPath));
-      await FirebaseRepo(idUser: widget.userData.uid)
-          .uploadFile(widget.mainListIndex, uploadPath, widget.index);
-      getSubTask();
+      await FirebaseRepo(idUser: widget.userData.uid).uploadFile(
+          widget.mainListIndex, uploadPath, widget.index,
+          isPhotoList: widget.isPhotoPage);
+      if (widget.isPhotoPage) {
+        getPhotoItemDetails();
+      } else {
+        getSubTask();
+      }
     });
   }
 
@@ -490,7 +605,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     SubTask task =
                         SubTask(completionStatus: false, taskTitle: valueText);
                     FirebaseRepo(idUser: widget.userData.uid).uploadSubTasks(
-                        widget.mainListIndex, task, widget.index);
+                        widget.mainListIndex, task, widget.index,
+                        isPhotoList: widget.isPhotoPage);
                     Navigator.pop(context);
                   });
                 },

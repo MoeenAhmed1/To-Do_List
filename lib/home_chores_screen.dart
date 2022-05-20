@@ -114,13 +114,6 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
             title: Text(widget.title),
             backgroundColor: Color(0XFF6F8671),
             actions: [
-              Icon(
-                Icons.person_add_alt,
-                size: 30,
-              ),
-              SizedBox(
-                width: 25,
-              ),
               Icon(Icons.sort_by_alpha_outlined, size: 30),
               SizedBox(
                 width: 25,
@@ -317,6 +310,8 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                           ),
                           IconButton(
                               onPressed: () {
+                                print(tasksList[index].reminderAt);
+                                print(tasksList[index].dueDate);
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -326,6 +321,7 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                                               index: index,
                                               mainListIndex: widget.index,
                                               task: tasksList[index],
+                                              isPhotoPage: false,
                                             )));
                               },
                               icon: Icon(
@@ -380,7 +376,7 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                       FirebaseRepo(idUser: widget.userData.uid)
                           .uploadTaskTitle(valueText, false, widget.index);
                       getTasks();
-
+                      _textFieldController.clear();
                       Navigator.pop(context);
                     });
                   }

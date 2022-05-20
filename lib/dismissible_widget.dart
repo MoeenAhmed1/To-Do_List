@@ -5,7 +5,7 @@ class DismissibleWidget<T> extends StatelessWidget {
   final Widget child;
   final DismissDirectionCallback onDismissed;
   final DismissDirectionCallback confirmDismissed;
-  
+
   const DismissibleWidget({
     this.item,
     this.child,
