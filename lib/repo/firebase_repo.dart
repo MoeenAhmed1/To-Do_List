@@ -25,7 +25,6 @@ class FirebaseRepo {
     } catch (e) {
       print(e);
     }
-    print(userData.name);
     return userData.name;
   }
 
@@ -45,6 +44,16 @@ class FirebaseRepo {
         .doc(idUser)
         .collection('PhotoLists')
         .add({'listtitle': listTitle});
+  }
+
+  Future updatePhotoList(String listTitle, int listId) async {
+    String id = await photoListDocId(listId);
+
+    await refUsers
+        .doc(idUser)
+        .collection('PhotoLists')
+        .doc(id)
+        .update({'listtitle': listTitle});
   }
 
   Future deletePhotoList(int listId) async {
@@ -102,32 +111,58 @@ class FirebaseRepo {
     });
   }
 
-  Future updateTask(
-      String taskTitle, bool isCompleted, int i, int taskListIndex) async {
-    String id = await docId(i);
-    String listId = await taskDocId(taskListIndex, id);
-    await refUsers
-        .doc(idUser)
-        .collection('TasksLists')
-        .doc(id)
-        .collection("Tasks")
-        .doc(listId)
-        .update({
-      'tasktitle': taskTitle,
-      'completionstatus': isCompleted,
-    });
+  Future updateTask(bool isCompleted, int i, int taskListIndex,
+      {String taskTitle, bool isPhotoPage}) async {
+    if (isPhotoPage) {
+      String id = await photoListDocId(i);
+      String listId = await photoListItemDocId(id, taskListIndex);
+      await refUsers
+          .doc(idUser)
+          .collection("PhotoLists")
+          .doc(id)
+          .collection('tasks')
+          .doc(listId)
+          .update({
+        'completionstatus': isCompleted,
+      });
+    } else {
+      String id = await docId(i);
+      String listId = await taskDocId(taskListIndex, id);
+      await refUsers
+          .doc(idUser)
+          .collection('TasksLists')
+          .doc(id)
+          .collection("Tasks")
+          .doc(listId)
+          .update({
+        'tasktitle': taskTitle,
+        'completionstatus': isCompleted,
+      });
+    }
   }
 
-  Future deleteTask(int i, int taskListIndex) async {
-    String id = await docId(i);
-    String listId = await taskDocId(taskListIndex, id);
-    await refUsers
-        .doc(idUser)
-        .collection('TasksLists')
-        .doc(id)
-        .collection("Tasks")
-        .doc(listId)
-        .delete();
+  Future deleteTask(int i, int taskListIndex, {bool isPhotoPage}) async {
+    if (isPhotoPage) {
+      String id = await photoListDocId(i);
+      String listId = await photoListItemDocId(id, taskListIndex);
+      await refUsers
+          .doc(idUser)
+          .collection("PhotoLists")
+          .doc(id)
+          .collection('tasks')
+          .doc(listId)
+          .delete();
+    } else {
+      String id = await docId(i);
+      String listId = await taskDocId(taskListIndex, id);
+      await refUsers
+          .doc(idUser)
+          .collection('TasksLists')
+          .doc(id)
+          .collection("Tasks")
+          .doc(listId)
+          .delete();
+    }
   }
 
   Future uploadTaskCompletionStatus(int i, bool isCompleted) async {
@@ -325,6 +360,37 @@ class FirebaseRepo {
     }
   }
 
+  Future deleteSubTasks(int i, int taskListIndex, int subTaskIndex,
+      {bool isPhotoList = false}) async {
+    if (isPhotoList) {
+      String id = await photoListDocId(i);
+      String listId = await photoListItemDocId(id, taskListIndex);
+      String subTaskId = await photoListSubTaskDocId(subTaskIndex, id, listId);
+      await refUsers
+          .doc(idUser)
+          .collection("PhotoLists")
+          .doc(id)
+          .collection('tasks')
+          .doc(listId)
+          .collection("SubTasks")
+          .doc(subTaskId)
+          .delete();
+    } else {
+      String id = await docId(i);
+      String listId = await taskDocId(taskListIndex, id);
+      String subTaskId = await subTaskDocId(subTaskIndex, id, listId);
+      await refUsers
+          .doc(idUser)
+          .collection("TasksLists")
+          .doc(id)
+          .collection('Tasks')
+          .doc(listId)
+          .collection("SubTasks")
+          .doc(subTaskId)
+          .delete();
+    }
+  }
+
   Future<List<String>> getTaskLists() async {
     final stream = await refUsers.doc(idUser).collection('TasksLists').get();
 
@@ -366,7 +432,9 @@ class FirebaseRepo {
     final list = stream.docs.toList();
     List<PhotoItemModel> photoItemList = [];
     for (int i = 0; i < list.length; i++) {
-      PhotoItemModel item = PhotoItemModel(imgURL: list[i].data()['picture']);
+      PhotoItemModel item = PhotoItemModel(
+          imgURL: list[i].data()['picture'],
+          completionStatus: list[i].data()['completionstatus']);
       photoItemList.add(item);
     }
     return photoItemList;

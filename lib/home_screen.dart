@@ -101,12 +101,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _displayTextInputDialog(BuildContext context, int index,
-      {bool isphotoList}) async {
+      {bool isphotoList, bool isUpdate}) async {
     return showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Add List'),
+            title: (isUpdate) ? Text('Update title') : Text('Add List'),
             content: TextField(
               onChanged: (value) {
                 setState(() {
@@ -134,28 +134,57 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   if (isphotoList == true) {
                     if (valueText.isNotEmpty) {
-                      setState(() {
-                        photoList.add(valueText);
-                        //taskListLength.add(tasksList.length);
+                      if (isUpdate) {
+                        setState(() {
+                          photoList.removeAt(index);
+                          photoList.insert(index, valueText);
+                          //photoList.add(valueText);
+                          //taskListLength.add(tasksList.length);
 
-                        FirebaseRepo(idUser: userData.uid)
-                            .uploadPhotoList(valueText);
-                        _textFieldController.clear();
-                        Navigator.pop(context);
-                      });
+                          FirebaseRepo(idUser: userData.uid)
+                              .updatePhotoList(valueText, index);
+                          _textFieldController.clear();
+                          Navigator.pop(context);
+                        });
+                      } else {
+                        setState(() {
+                          photoList.add(valueText);
+                          //taskListLength.add(tasksList.length);
+
+                          FirebaseRepo(idUser: userData.uid)
+                              .uploadPhotoList(valueText);
+                          _textFieldController.clear();
+                          Navigator.pop(context);
+                        });
+                      }
                     }
                   } else {
                     if (valueText.isNotEmpty) {
-                      setState(() {
-                        tasksList.add(valueText);
-                        taskListLength.add(tasksList.length);
+                      if (isUpdate) {
+                        setState(() {
+                          tasksList.removeAt(index);
+                          tasksList.insert(index, valueText);
+                          //tasksList.add(valueText);
+                          //taskListLength.add(tasksList.length);
 
-                        FirebaseRepo(idUser: userData.uid)
-                            .uploadTaskList(valueText, index);
-                        _textFieldController.clear();
+                          FirebaseRepo(idUser: userData.uid)
+                              .updateTaskList(valueText, index);
+                          _textFieldController.clear();
 
-                        Navigator.pop(context);
-                      });
+                          Navigator.pop(context);
+                        });
+                      } else {
+                        setState(() {
+                          tasksList.add(valueText);
+                          taskListLength.add(tasksList.length);
+
+                          FirebaseRepo(idUser: userData.uid)
+                              .uploadTaskList(valueText, index);
+                          _textFieldController.clear();
+
+                          Navigator.pop(context);
+                        });
+                      }
                     }
                   }
                 },
@@ -298,7 +327,8 @@ class _HomePageState extends State<HomePage> {
                                             onPressed: () async {
                                               await _displayTextInputDialog(
                                                   context, tasksList.length,
-                                                  isphotoList: false);
+                                                  isphotoList: false,
+                                                  isUpdate: false);
                                             },
                                             icon: Center(
                                               child: Icon(
@@ -393,7 +423,8 @@ class _HomePageState extends State<HomePage> {
                                             onPressed: () async {
                                               await _displayTextInputDialog(
                                                   context, photoList.length,
-                                                  isphotoList: true);
+                                                  isphotoList: true,
+                                                  isUpdate: false);
                                             },
                                             icon: Center(
                                               child: Icon(
@@ -423,7 +454,8 @@ class _HomePageState extends State<HomePage> {
                                       index: index,
                                       isPhotoList: true),
                                   confirmDismissed: (direction) async {
-                                    //dismissItem(context, index, direction);
+                                    dismissItem(context, index, direction,
+                                        isPhotoList: true);
                                   },
                                 );
                               }),
@@ -438,12 +470,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> dismissItem(
-    BuildContext context,
-    int index,
-    DismissDirection direction,
-  ) async {
+      BuildContext context, int index, DismissDirection direction,
+      {bool isPhotoList}) async {
     if (direction == DismissDirection.endToStart) {
       await _displayConfirmationDialog(context, index);
+      if (isCanceled == false) {
+        return true;
+      }
+      return false;
+    }
+    if (direction == DismissDirection.startToEnd) {
+      await _displayTextInputDialog(context, index,
+          isUpdate: true, isphotoList: isPhotoList);
       if (isCanceled == false) {
         return true;
       }

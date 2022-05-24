@@ -337,7 +337,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   if (index == subtasklist.length) {
                                     return ListTile(
                                       onTap: () {
-                                        _displayTextInputDialog(context);
+                                        _displayTextInputDialog(context,
+                                            isUpdate: false);
                                       },
                                       leading: Icon(
                                         Icons.add,
@@ -352,6 +353,28 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                     );
                                   } else {
                                     return ListTile(
+                                      onTap: () async {
+                                        await _displayTextInputDialog(context,
+                                            subTaskIndex: index,
+                                            isUpdate: true);
+                                      },
+                                      trailing: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            subtasklist.removeAt(index);
+                                          });
+                                          FirebaseRepo(
+                                                  idUser: widget.userData.uid)
+                                              .deleteSubTasks(
+                                                  widget.mainListIndex,
+                                                  widget.index,
+                                                  index,
+                                                  isPhotoList:
+                                                      widget.isPhotoPage);
+                                        },
+                                        child: Icon(Icons.delete,
+                                            color: Colors.grey, size: 25),
+                                      ),
                                       leading: (subtasklist[index]
                                                   .completionStatus ??
                                               true)
@@ -567,12 +590,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     });
   }
 
-  Future<void> _displayTextInputDialog(BuildContext context) async {
+  Future<void> _displayTextInputDialog(BuildContext context,
+      {int subTaskIndex, bool isUpdate}) async {
     return showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Add Sub Task'),
+            title: (isUpdate) ? Text('Update Sub Task') : Text('Add Sub Task'),
             content: TextField(
               onChanged: (value) {
                 setState(() {
@@ -589,6 +613,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 child: Text('CANCEL'),
                 onPressed: () {
                   setState(() {
+                    _textFieldController.clear();
                     Navigator.pop(context);
                   });
                 },
@@ -598,17 +623,40 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 textColor: Colors.white,
                 child: Text('OK'),
                 onPressed: () async {
-                  setState(() {
-                    subTask.add(valueText);
-                    subtasklist.add(
-                        SubTask(taskTitle: valueText, completionStatus: false));
-                    SubTask task =
-                        SubTask(completionStatus: false, taskTitle: valueText);
-                    FirebaseRepo(idUser: widget.userData.uid).uploadSubTasks(
-                        widget.mainListIndex, task, widget.index,
-                        isPhotoList: widget.isPhotoPage);
-                    Navigator.pop(context);
-                  });
+                  if (isUpdate) {
+                    setState(() {
+                      //subTask.add(valueText);
+                      //subTask.removeAt(subTaskIndex);
+                      //subTask.insert(subTaskIndex, valueText);
+                      subtasklist.removeAt(subTaskIndex);
+                      subtasklist.insert(
+                          subTaskIndex,
+                          SubTask(
+                              taskTitle: valueText, completionStatus: false));
+                      SubTask task = SubTask(
+                          completionStatus: false, taskTitle: valueText);
+                      FirebaseRepo(idUser: widget.userData.uid).updateSubTasks(
+                          widget.mainListIndex,
+                          task,
+                          widget.index,
+                          subTaskIndex,
+                          isPhotoList: widget.isPhotoPage);
+                      _textFieldController.clear();
+                      Navigator.pop(context);
+                    });
+                  } else {
+                    setState(() {
+                      subTask.add(valueText);
+                      subtasklist.add(SubTask(
+                          taskTitle: valueText, completionStatus: false));
+                      SubTask task = SubTask(
+                          completionStatus: false, taskTitle: valueText);
+                      FirebaseRepo(idUser: widget.userData.uid).uploadSubTasks(
+                          widget.mainListIndex, task, widget.index,
+                          isPhotoList: widget.isPhotoPage);
+                      Navigator.pop(context);
+                    });
+                  }
                 },
               ),
             ],

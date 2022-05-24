@@ -141,7 +141,7 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                           padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                           child: InkWell(
                             onTap: () {
-                              _displayTextInputDialog(context);
+                              _displayTextInputDialog(context, isUpdate: false);
                             },
                             child: Container(
                               color: Color(0XFF6F8671).withOpacity(0.3),
@@ -229,18 +229,11 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
       await _displayConfirmationDialog(context, index, isComplete);
       return true;
     }
+    if (direction == DismissDirection.startToEnd) {
+      await _displayTextInputDialog(context, index: index, isUpdate: true);
+      return true;
+    }
     return false;
-
-    // switch (direction) {
-    //   case DismissDirection.endToStart:
-    //     Utils.showSnackBar(context, 'Chat has been deleted');
-    //     break;
-    //   case DismissDirection.startToEnd:
-    //     Utils.showSnackBar(context, 'Chat has been archived');
-    //     break;
-    //   default:
-    //     break;
-    // }
   }
 
   Widget tasksListWidget(
@@ -273,10 +266,11 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                               });
                               await FirebaseRepo(idUser: widget.userData.uid)
                                   .updateTask(
-                                      tasksList[index].taskTitle,
                                       !tasksList[index].completionStatus,
                                       widget.index,
-                                      index);
+                                      index,
+                                      taskTitle: tasksList[index].taskTitle,
+                                      isPhotoPage: false);
                               getTasks();
                             },
                             icon: Icon(
@@ -310,8 +304,6 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                           ),
                           IconButton(
                               onPressed: () {
-                                print(tasksList[index].reminderAt);
-                                print(tasksList[index].dueDate);
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -340,12 +332,13 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
     );
   }
 
-  Future<void> _displayTextInputDialog(BuildContext context) async {
+  Future<void> _displayTextInputDialog(BuildContext context,
+      {int index, bool isUpdate}) async {
     return showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Add Task'),
+            title: (isUpdate) ? Text('Update title') : Text('Add Task'),
             content: TextField(
               onChanged: (value) {
                 setState(() {
@@ -370,15 +363,29 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                 color: Color(0XFF6F8671),
                 textColor: Colors.white,
                 child: Text('OK'),
-                onPressed: () {
+                onPressed: () async {
                   if (valueText.isNotEmpty) {
-                    setState(() {
-                      FirebaseRepo(idUser: widget.userData.uid)
-                          .uploadTaskTitle(valueText, false, widget.index);
-                      getTasks();
-                      _textFieldController.clear();
-                      Navigator.pop(context);
-                    });
+                    if (isUpdate) {
+                      setState(() {
+                        loading = true;
+                      });
+                      await FirebaseRepo(idUser: widget.userData.uid)
+                          .updateTask(false, widget.index, index,
+                              taskTitle: valueText, isPhotoPage: false);
+                      setState(() {
+                        getTasks();
+                        _textFieldController.clear();
+                        Navigator.pop(context);
+                      });
+                    } else {
+                      setState(() {
+                        FirebaseRepo(idUser: widget.userData.uid)
+                            .uploadTaskTitle(valueText, false, widget.index);
+                        getTasks();
+                        _textFieldController.clear();
+                        Navigator.pop(context);
+                      });
+                    }
                   }
                 },
               ),

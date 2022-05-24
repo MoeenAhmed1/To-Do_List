@@ -27,8 +27,8 @@ class DismissibleWidget<T> extends StatelessWidget {
   Widget buildSwipeActionLeft() => Container(
         alignment: Alignment.centerLeft,
         padding: EdgeInsets.symmetric(horizontal: 20),
-        color: Colors.white,
-        child: null,
+        color: Colors.blue,
+        child: Icon(Icons.edit, color: Colors.white, size: 32),
       );
 
   Widget buildSwipeActionRight() => Container(

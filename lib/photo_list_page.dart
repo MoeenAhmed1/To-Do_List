@@ -248,9 +248,14 @@ class _PhotoListPageState extends State<PhotoListPage> {
                 color: Color(0XFF6F8671),
                 textColor: Colors.white,
                 child: Text('OK'),
-                onPressed: () {
-                  int i = 0;
-
+                onPressed: () async {
+                  setState(() {
+                    loading = true;
+                    //list.removeAt(index);
+                  });
+                  await FirebaseRepo(idUser: widget.userData.uid)
+                      .deleteTask(widget.index, index, isPhotoPage: true);
+                  getPhotos();
                   setState(() {
                     Navigator.pop(context);
                   });
@@ -297,17 +302,6 @@ class _PhotoListPageState extends State<PhotoListPage> {
                 SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
             itemBuilder: (BuildContext context, int index) {
               final item = list[index];
-              //  Navigator.push(
-              //             context,
-              //             MaterialPageRoute(
-              //                 builder: (context) => TaskDetailPage(
-              //                       userData: widget.userData,
-              //                       title: 'PhotoDetail',
-              //                       index: index,
-              //                       mainListIndex: widget.index,
-              //                       photoItem: item,
-              //                       isPhotoPage: false,
-              //                     )));
               return Padding(
                 padding: const EdgeInsets.all(5.0),
                 child: GestureDetector(
@@ -324,9 +318,65 @@ class _PhotoListPageState extends State<PhotoListPage> {
                                   isPhotoPage: true,
                                 )));
                   },
-                  child: Image.network(
-                    item.imgURL,
-                    fit: BoxFit.cover,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(item.imgURL),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                                color: Colors.grey.withOpacity(0.5),
+                                child: IconButton(
+                                  icon: (item.completionStatus)
+                                      ? Icon(
+                                          Icons.check_box,
+                                          size: 28,
+                                          color: Colors.green,
+                                        )
+                                      : Icon(
+                                          Icons.check_box_outline_blank,
+                                          size: 28,
+                                        ),
+                                  onPressed: () async {
+                                    setState(() {
+                                      list[index].completionStatus =
+                                          !list[index].completionStatus;
+                                      //loading = true;
+                                    });
+                                    await FirebaseRepo(
+                                            idUser: widget.userData.uid)
+                                        .updateTask(
+                                            list[index].completionStatus,
+                                            widget.index,
+                                            index,
+                                            isPhotoPage: true);
+                                    setState(() {
+                                      //loading = false;
+                                    });
+                                  },
+                                )),
+                            Container(
+                                color: Colors.grey.withOpacity(0.5),
+                                child: IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () async {
+                                    _displayConfirmationDialog(context, index);
+                                  },
+                                )),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // child: Image.network(
+                    //   item.imgURL,
+                    //   fit: BoxFit.cover,
+                    // ),
                   ),
                 ),
 
