@@ -475,6 +475,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               String name = urlList[index]
                                   .toString()
                                   .substring(start, end);
+                              name = name.replaceAll("%20", ' ');
 
                               return ListTile(
                                 title: Text(
@@ -498,12 +499,31 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   //     MaterialPageRoute(
                                   //         builder: (context) =>
                                   //             ViewFilePage(doc)));
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AboutPage(
+                                        returnUrl: urlList[index],
+                                        appBarTitle: name,
+                                      ),
+                                    ),
+                                  );
                                 },
                                 trailing: IconButton(
                                   icon: Icon(Icons.close),
                                   onPressed: () {
                                     setState(() {
                                       //fileList.removeAt(index);
+                                      FirebaseRepo(idUser: widget.userData.uid)
+                                          .deleteTasksFiles(
+                                              widget.mainListIndex,
+                                              widget.index,
+                                              index,
+                                              isPhotoList: widget.isPhotoPage);
+                                      FirebaseRepo(idUser: widget.userData.uid)
+                                          .deleteImageFromStorage(
+                                              urlList[index]);
+                                      urlList.removeAt(index);
                                     });
                                   },
                                 ),

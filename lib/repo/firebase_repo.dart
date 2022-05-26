@@ -391,6 +391,37 @@ class FirebaseRepo {
     }
   }
 
+  Future deleteTasksFiles(int i, int taskListIndex, int taskFileIndex,
+      {bool isPhotoList = false}) async {
+    if (isPhotoList) {
+      String id = await photoListDocId(i);
+      String listId = await photoListItemDocId(id, taskListIndex);
+      String subTaskId = await photoListFileDocID(taskFileIndex, id, listId);
+      await refUsers
+          .doc(idUser)
+          .collection("PhotoLists")
+          .doc(id)
+          .collection('tasks')
+          .doc(listId)
+          .collection("Attachments")
+          .doc(subTaskId)
+          .delete();
+    } else {
+      String id = await docId(i);
+      String listId = await taskDocId(taskListIndex, id);
+      String subTaskId = await taskFileDocID(taskFileIndex, id, listId);
+      await refUsers
+          .doc(idUser)
+          .collection("TasksLists")
+          .doc(id)
+          .collection('Tasks')
+          .doc(listId)
+          .collection("Attachments")
+          .doc(subTaskId)
+          .delete();
+    }
+  }
+
   Future<List<String>> getTaskLists() async {
     final stream = await refUsers.doc(idUser).collection('TasksLists').get();
 
@@ -548,6 +579,11 @@ class FirebaseRepo {
     });
   }
 
+  Future<void> deleteImageFromStorage(String imgURL) async {
+    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+    await firebaseStorage.refFromURL(imgURL).delete();
+  }
+
   Future<List> getFiles(int index, int taskIndex,
       {bool isPhotoList = false}) async {
     QuerySnapshot stream;
@@ -618,7 +654,6 @@ class FirebaseRepo {
   }
 
   Future<String> taskDocId(int i, String id) async {
-    print(i);
     QuerySnapshot querySnapshot = await refUsers
         .doc(idUser)
         .collection('TasksLists')
@@ -633,7 +668,6 @@ class FirebaseRepo {
   }
 
   Future<String> subTaskDocId(int i, String id, String taskId) async {
-    print(i);
     QuerySnapshot querySnapshot = await refUsers
         .doc(idUser)
         .collection('TasksLists')
@@ -657,6 +691,38 @@ class FirebaseRepo {
         .collection('tasks')
         .doc(taskId)
         .collection('SubTasks')
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      List list = querySnapshot.docs.toList();
+      return list[i].id;
+    }
+    return "0";
+  }
+
+  Future<String> photoListFileDocID(int i, String id, String taskId) async {
+    QuerySnapshot querySnapshot = await refUsers
+        .doc(idUser)
+        .collection('PhotoLists')
+        .doc(id)
+        .collection('tasks')
+        .doc(taskId)
+        .collection('Attachments')
+        .get();
+    if (querySnapshot.docs.isNotEmpty) {
+      List list = querySnapshot.docs.toList();
+      return list[i].id;
+    }
+    return "0";
+  }
+
+  Future<String> taskFileDocID(int i, String id, String taskId) async {
+    QuerySnapshot querySnapshot = await refUsers
+        .doc(idUser)
+        .collection('TasksLists')
+        .doc(id)
+        .collection('Tasks')
+        .doc(taskId)
+        .collection('Attachments')
         .get();
     if (querySnapshot.docs.isNotEmpty) {
       List list = querySnapshot.docs.toList();

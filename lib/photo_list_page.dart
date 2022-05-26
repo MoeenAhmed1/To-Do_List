@@ -73,11 +73,6 @@ class _PhotoListPageState extends State<PhotoListPage> {
         body: Builder(
             builder: (context) => Container(
                 constraints: BoxConstraints.expand(),
-                // decoration: BoxDecoration(
-                //     image: DecorationImage(
-                //         image: NetworkImage(
-                //             "https://images.pexels.com/photos/1461974/pexels-photo-1461974.jpeg?cs=srgb&dl=pexels-nextvoyage-1461974.jpg&fm=jpg"),
-                //         fit: BoxFit.cover)),
                 child: SingleChildScrollView(
                     child: Padding(
                   padding: const EdgeInsets.fromLTRB(5, 15, 5, 5),
@@ -89,7 +84,6 @@ class _PhotoListPageState extends State<PhotoListPage> {
                           onTap: () async {
                             await _displaySelectorDialog(context);
                             if (selectedImage != null) {
-                              //_displayTextInputDialog(context);
                               setState(() {
                                 loading = true;
                               });
@@ -209,25 +203,13 @@ class _PhotoListPageState extends State<PhotoListPage> {
                   });
                 },
               ),
-              // FlatButton(
-              //   color: Color(0XFF6F8671),
-              //   textColor: Colors.white,
-              //   child: Text('OK'),
-              //   onPressed: () {
-              //     int i = 0;
-
-              //     setState(() {
-              //       Navigator.pop(context);
-              //     });
-              //   },
-              // ),
             ],
           );
         });
   }
 
   Future<void> _displayConfirmationDialog(
-      BuildContext context, int index) async {
+      BuildContext context, int index, String imgURL) async {
     return showDialog(
         context: context,
         builder: (context) {
@@ -255,6 +237,8 @@ class _PhotoListPageState extends State<PhotoListPage> {
                   });
                   await FirebaseRepo(idUser: widget.userData.uid)
                       .deleteTask(widget.index, index, isPhotoPage: true);
+                  await FirebaseRepo(idUser: widget.userData.uid)
+                      .deleteImageFromStorage(imgURL);
                   getPhotos();
                   setState(() {
                     Navigator.pop(context);
@@ -266,35 +250,23 @@ class _PhotoListPageState extends State<PhotoListPage> {
         });
   }
 
-  Future<bool> dismissItem(BuildContext context, int index,
-      DismissDirection direction, bool isComplete) async {
-    if (direction == DismissDirection.endToStart) {
-      await _displayConfirmationDialog(
-        context,
-        index,
-      );
-      return true;
-    }
-    return false;
-
-    // switch (direction) {
-    //   case DismissDirection.endToStart:
-    //     Utils.showSnackBar(context, 'Chat has been deleted');
-    //     break;
-    //   case DismissDirection.startToEnd:
-    //     Utils.showSnackBar(context, 'Chat has been archived');
-    //     break;
-    //   default:
-    //     break;
-    // }
-  }
+  // Future<bool> dismissItem(BuildContext context, int index,
+  //     DismissDirection direction, bool isComplete) async {
+  //   if (direction == DismissDirection.endToStart) {
+  //     await _displayConfirmationDialog(
+  //       context,
+  //       index,
+  //     );
+  //     return true;
+  //   }
+  //   return false;
+  // }
 
   Widget tasksListWidget(
       {List<PhotoItemModel> list, bool completedTask, Function onpressed}) {
     return InkWell(
       child: Container(
         height: containerHeight,
-        //color: Color(0XFF6F8671).withOpacity(0.3),
         child: GridView.builder(
             physics: ScrollPhysics(),
             itemCount: list.length,
@@ -362,52 +334,23 @@ class _PhotoListPageState extends State<PhotoListPage> {
                                   },
                                 )),
                             Container(
-                                color: Colors.grey.withOpacity(0.5),
-                                child: IconButton(
-                                  icon: Icon(Icons.delete),
-                                  onPressed: () async {
-                                    _displayConfirmationDialog(context, index);
-                                  },
-                                )),
+                              color: Colors.grey.withOpacity(0.9),
+                              child: IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () async {
+                                  _displayConfirmationDialog(
+                                      context, index, list[index].imgURL);
+                                },
+                              ),
+                            ),
                           ],
                         ),
                       ],
                     ),
-                    // child: Image.network(
-                    //   item.imgURL,
-                    //   fit: BoxFit.cover,
-                    // ),
                   ),
                 ),
-
-                // Image.file(
-                //   File(imageFileList[index].path),
-                //   fit: BoxFit.cover,
-                // ),
               );
             }),
-        // ListView.separated(
-        //     separatorBuilder: (context, index) {
-        //       return SizedBox(
-        //         width: 20,
-        //       );
-        //     },
-        //     itemCount: list.length,
-        //     scrollDirection: Axis.horizontal,
-        //     itemBuilder: (context, index) {
-        //       final item = list[index];
-        //       return Container(
-        //         height: 150.0,
-        //         width: 250.0,
-        //         decoration: BoxDecoration(
-        //           image: DecorationImage(
-        //             image: NetworkImage(item.imgURL),
-        //             fit: BoxFit.cover,
-        //           ),
-        //           //shape: BoxShape.circle,
-        //         ),
-        //       );
-        //     }),
       ),
     );
   }
