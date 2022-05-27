@@ -151,22 +151,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: IconThemeData(color: Colors.black),
-        title: Center(
-          child: Text(
-            widget.title,
-            style: TextStyle(color: Colors.black),
-          ),
+        title: Text(
+          widget.title,
+          style: TextStyle(color: Colors.black),
         ),
+
         backgroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(
-              Icons.star_border,
-              color: Colors.grey,
-            ),
-          )
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.all(8.0),
+        //     child: Icon(
+        //       Icons.star_border,
+        //       color: Colors.grey,
+        //     ),
+        //   )
+        // ],
       ),
       body: (loading)
           ? Center(
@@ -227,7 +226,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       ? "Add Due Date"
                                       : "Due $displayDate",
                                   style: TextStyle(
-                                      fontSize: 22,
+                                      fontSize: 18,
                                       color: (isDueDate)
                                           ? Colors.red
                                           : Colors.blue),
@@ -348,7 +347,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       title: Text(
                                         "Add a Subtask",
                                         style: TextStyle(
-                                            fontSize: 22, color: Colors.grey),
+                                            fontSize: 18, color: Colors.grey),
                                       ),
                                     );
                                   } else {
@@ -442,7 +441,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                       title: Text(
                                         subtasklist[index].taskTitle,
                                         style: TextStyle(
-                                          fontSize: 22,
+                                          fontSize: 18,
                                           decoration: (subtasklist[index]
                                                   .completionStatus)
                                               ? TextDecoration.lineThrough
@@ -618,6 +617,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           return AlertDialog(
             title: (isUpdate) ? Text('Update Sub Task') : Text('Add Sub Task'),
             content: TextField(
+              autofocus: true,
               onChanged: (value) {
                 setState(() {
                   valueText = value;
@@ -655,13 +655,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                               taskTitle: valueText, completionStatus: false));
                       SubTask task = SubTask(
                           completionStatus: false, taskTitle: valueText);
+                      _textFieldController.clear();
                       FirebaseRepo(idUser: widget.userData.uid).updateSubTasks(
                           widget.mainListIndex,
                           task,
                           widget.index,
                           subTaskIndex,
                           isPhotoList: widget.isPhotoPage);
-                      _textFieldController.clear();
+
                       Navigator.pop(context);
                     });
                   } else {
@@ -671,6 +672,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           taskTitle: valueText, completionStatus: false));
                       SubTask task = SubTask(
                           completionStatus: false, taskTitle: valueText);
+                      _textFieldController.clear();
                       FirebaseRepo(idUser: widget.userData.uid).uploadSubTasks(
                           widget.mainListIndex, task, widget.index,
                           isPhotoList: widget.isPhotoPage);

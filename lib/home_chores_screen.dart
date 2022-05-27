@@ -93,7 +93,7 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                     }
 
                     FirebaseRepo(idUser: widget.userData.uid)
-                        .deleteTask(widget.index, i);
+                        .deleteTask(widget.index, i, isPhotoPage: false);
                   });
                   setState(() {
                     Navigator.pop(context);
@@ -113,16 +113,16 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
           appBar: AppBar(
             title: Text(widget.title),
             backgroundColor: Color(0XFF6F8671),
-            actions: [
-              Icon(Icons.sort_by_alpha_outlined, size: 30),
-              SizedBox(
-                width: 25,
-              ),
-              Icon(Icons.more_vert, size: 30),
-              SizedBox(
-                width: 10,
-              ),
-            ],
+            // actions: [
+            //   Icon(Icons.sort_by_alpha_outlined, size: 30),
+            //   SizedBox(
+            //     width: 25,
+            //   ),
+            //   Icon(Icons.more_vert, size: 30),
+            //   SizedBox(
+            //     width: 10,
+            //   ),
+            // ],
           ),
           body: Builder(
               builder: (context) => Container(
@@ -167,11 +167,11 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                                       )
                                     ],
                                   ),
-                                  Icon(
-                                    Icons.star_border_outlined,
-                                    color: Colors.white,
-                                    size: 30,
-                                  ),
+                                  // Icon(
+                                  //   Icons.star_border_outlined,
+                                  //   color: Colors.white,
+                                  //   size: 30,
+                                  // ),
                                 ],
                               ),
                             ),
@@ -251,79 +251,95 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
               },
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(0, 3, 0, 3),
-                child: Container(
-                  height: 60,
-                  color: Colors.white,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: () async {
-                              setState(() {
-                                loading = true;
-                              });
-                              await FirebaseRepo(idUser: widget.userData.uid)
-                                  .updateTask(
-                                      !tasksList[index].completionStatus,
-                                      widget.index,
-                                      index,
-                                      taskTitle: tasksList[index].taskTitle,
-                                      isPhotoPage: false);
-                              getTasks();
-                            },
-                            icon: Icon(
-                              (tasksList[index].completionStatus)
-                                  ? Icons.check_box
-                                  : Icons.check_box_outline_blank,
-                              color: Colors.grey,
-                              size: 30,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Text(
-                            tasksList[index].taskTitle,
-                            style: TextStyle(
-                                decoration: (tasksList[index].completionStatus)
-                                    ? TextDecoration.lineThrough
-                                    : null,
-                                color: Colors.black,
-                                fontSize: 18),
-                          )
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.star_border_outlined,
-                            color: Colors.grey,
-                            size: 30,
-                          ),
-                          IconButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => TaskDetailPage(
-                                              userData: widget.userData,
-                                              title: tasksList[index].taskTitle,
-                                              index: index,
-                                              mainListIndex: widget.index,
-                                              task: tasksList[index],
-                                              isPhotoPage: false,
-                                            )));
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => TaskDetailPage(
+                                  userData: widget.userData,
+                                  title: tasksList[index].taskTitle,
+                                  index: index,
+                                  mainListIndex: widget.index,
+                                  task: tasksList[index],
+                                  isPhotoPage: false,
+                                )));
+                  },
+                  child: Container(
+                    height: 60,
+                    color: Colors.white,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () async {
+                                setState(() {
+                                  loading = true;
+                                });
+                                await FirebaseRepo(idUser: widget.userData.uid)
+                                    .updateTask(
+                                        !tasksList[index].completionStatus,
+                                        widget.index,
+                                        index,
+                                        taskTitle: tasksList[index].taskTitle,
+                                        isPhotoPage: false);
+                                getTasks();
                               },
                               icon: Icon(
-                                Icons.navigate_next,
+                                (tasksList[index].completionStatus)
+                                    ? Icons.check_box
+                                    : Icons.check_box_outline_blank,
                                 color: Colors.grey,
                                 size: 30,
-                              ))
-                        ],
-                      ),
-                    ],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 20,
+                            ),
+                            Text(
+                              tasksList[index].taskTitle,
+                              style: TextStyle(
+                                  decoration:
+                                      (tasksList[index].completionStatus)
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                  color: Colors.black,
+                                  fontSize: 18),
+                            )
+                          ],
+                        ),
+                        // Row(
+                        //   children: [
+                        //     Icon(
+                        //       Icons.star_border_outlined,
+                        //       color: Colors.grey,
+                        //       size: 30,
+                        //     ),
+                        //     IconButton(
+                        //         onPressed: () {
+                        //           // Navigator.push(
+                        //           //     context,
+                        //           //     MaterialPageRoute(
+                        //           //         builder: (context) => TaskDetailPage(
+                        //           //               userData: widget.userData,
+                        //           //               title: tasksList[index].taskTitle,
+                        //           //               index: index,
+                        //           //               mainListIndex: widget.index,
+                        //           //               task: tasksList[index],
+                        //           //               isPhotoPage: false,
+                        //           //             )));
+                        //         },
+                        //         icon: Icon(
+                        //           Icons.navigate_next,
+                        //           color: Colors.grey,
+                        //           size: 30,
+                        //         ))
+                        //   ],
+                        // ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -340,6 +356,7 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
           return AlertDialog(
             title: (isUpdate) ? Text('Update title') : Text('Add Task'),
             content: TextField(
+              autofocus: true,
               onChanged: (value) {
                 setState(() {
                   valueText = value;
@@ -369,20 +386,22 @@ class _HomeChoresScreenState extends State<HomeChoresScreen> {
                       setState(() {
                         loading = true;
                       });
+                      _textFieldController.clear();
                       await FirebaseRepo(idUser: widget.userData.uid)
                           .updateTask(false, widget.index, index,
                               taskTitle: valueText, isPhotoPage: false);
                       setState(() {
                         getTasks();
-                        _textFieldController.clear();
+
                         Navigator.pop(context);
                       });
                     } else {
                       setState(() {
+                        _textFieldController.clear();
                         FirebaseRepo(idUser: widget.userData.uid)
                             .uploadTaskTitle(valueText, false, widget.index);
                         getTasks();
-                        _textFieldController.clear();
+
                         Navigator.pop(context);
                       });
                     }

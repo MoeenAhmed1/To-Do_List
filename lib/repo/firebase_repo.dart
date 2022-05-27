@@ -433,7 +433,7 @@ class FirebaseRepo {
     for (int i = 0; i < list.length; i++) {
       int index = list[i]['index'];
       //taskLists.add(list[i]['listtitle']);
-      taskLists[index] = list[i]['listtitle'];
+      taskLists[i] = list[i]['listtitle'];
     }
 
     return taskLists;

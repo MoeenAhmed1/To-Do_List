@@ -108,6 +108,7 @@ class _HomePageState extends State<HomePage> {
           return AlertDialog(
             title: (isUpdate) ? Text('Update title') : Text('Add List'),
             content: TextField(
+              autofocus: true,
               onChanged: (value) {
                 setState(() {
                   valueText = value;
@@ -140,20 +141,21 @@ class _HomePageState extends State<HomePage> {
                           photoList.insert(index, valueText);
                           //photoList.add(valueText);
                           //taskListLength.add(tasksList.length);
-
+                          _textFieldController.clear();
                           FirebaseRepo(idUser: userData.uid)
                               .updatePhotoList(valueText, index);
-                          _textFieldController.clear();
+
                           Navigator.pop(context);
                         });
                       } else {
                         setState(() {
+                          _textFieldController.clear();
                           photoList.add(valueText);
                           //taskListLength.add(tasksList.length);
 
                           FirebaseRepo(idUser: userData.uid)
                               .uploadPhotoList(valueText);
-                          _textFieldController.clear();
+
                           Navigator.pop(context);
                         });
                       }
@@ -199,7 +201,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
           child: InkWell(
             onTap: () {
               Navigator.push(
@@ -209,9 +211,22 @@ class _HomePageState extends State<HomePage> {
                             userName: userName,
                           )));
             },
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(
-                  "https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=688&q=80"),
+            child: Center(
+              child: CircleAvatar(
+                backgroundColor: Color.fromARGB(255, 82, 108, 85),
+                radius: 50,
+                child: Center(
+                  child: (loading)
+                      ? Text(
+                          '',
+                          style: TextStyle(fontSize: 22, color: Colors.white),
+                        )
+                      : Text(
+                          userName.substring(0, 1) ?? '',
+                          style: TextStyle(fontSize: 22, color: Colors.white),
+                        ),
+                ),
+              ),
             ),
           ),
         ),
@@ -220,7 +235,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           Icon(Icons.search, size: 30),
           SizedBox(
-            width: 10,
+            width: 20,
           ),
         ],
       ),
@@ -260,37 +275,63 @@ class _HomePageState extends State<HomePage> {
                         //       color: Colors.red,
                         //     ),
                         //     "0"),
-                        tileWidget(
-                            "Today",
-                            Icon(
-                              Icons.calendar_today,
-                              color: Colors.green,
-                            ),
-                            "0"),
+
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 4),
+                          child: tileWidget(
+                              "Today",
+                              Icon(
+                                Icons.calendar_today,
+                                color: Colors.green,
+                              ),
+                              "0"),
+                        ),
                         SizedBox(
                           height: 10,
                         ),
                         Container(
                           height: 40,
                           color: Color(0XFF6F8671).withOpacity(0.7),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Center(
-                                child: Text(
-                                  "Tasks List",
-                                  style: TextStyle(
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.bold),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 20, right: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      "Tasks List",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.normal),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                                Container(
+                                  child: IconButton(
+                                    onPressed: () async {
+                                      await _displayTextInputDialog(
+                                          context, tasksList.length,
+                                          isphotoList: false, isUpdate: false);
+                                    },
+                                    icon: Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
+                        ),
+                        SizedBox(
+                          height: 10,
                         ),
                         Container(
                           height: 60.0 * (tasksList.length + 1),
                           child: ListView.builder(
-                              itemCount: (tasksList.length) + 1,
+                              itemCount: (tasksList.length),
                               // onReorder: (oldIndex, newIndex) => setState(() {
                               //       final index = newIndex > oldIndex
                               //           ? newIndex - 1
@@ -304,59 +345,64 @@ class _HomePageState extends State<HomePage> {
                               //       //     .updateTaskListIndex(oldIndex, index);
                               //     }),
                               itemBuilder: (context, index) {
-                                if (index == tasksList.length) {
-                                  return Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Container(
-                                          width: 50,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(50),
-                                            color: Colors.blue,
-                                            // boxShadow: [
-                                            //   BoxShadow(
-                                            //       color: Colors.blue,
-                                            //       spreadRadius: 3),
-                                            // ],
-                                          ),
-                                          child: IconButton(
-                                            color: Colors.white,
-                                            onPressed: () async {
-                                              await _displayTextInputDialog(
-                                                  context, tasksList.length,
-                                                  isphotoList: false,
-                                                  isUpdate: false);
-                                            },
-                                            icon: Center(
-                                              child: Icon(
-                                                Icons.add,
-                                                size: 35,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }
+                                // if (index == tasksList.length) {
+                                //   return Row(
+                                //     mainAxisAlignment: MainAxisAlignment.center,
+                                //     children: [
+                                //       Padding(
+                                //         padding: const EdgeInsets.all(8.0),
+                                //         child: Container(
+                                //           width: 50,
+                                //           decoration: BoxDecoration(
+                                //             borderRadius:
+                                //                 BorderRadius.circular(50),
+                                //             color: Colors.blue,
+                                //             // boxShadow: [
+                                //             //   BoxShadow(
+                                //             //       color: Colors.blue,
+                                //             //       spreadRadius: 3),
+                                //             // ],
+                                //           ),
+                                //           child: IconButton(
+                                //             color: Colors.white,
+                                //             onPressed: () async {
+                                //               await _displayTextInputDialog(
+                                //                   context, tasksList.length,
+                                //                   isphotoList: false,
+                                //                   isUpdate: false);
+                                //             },
+                                //             icon: Center(
+                                //               child: Icon(
+                                //                 Icons.add,
+                                //                 size: 35,
+                                //               ),
+                                //             ),
+                                //           ),
+                                //         ),
+                                //       ),
+                                //     ],
+                                //   );
+                                // }
 
                                 final item = tasksList[index];
 
                                 return DismissibleWidget(
                                   key: ValueKey(item),
                                   item: item,
-                                  child: tileWidget(
-                                      tasksList[index],
-                                      Icon(
-                                        Icons.task,
-                                        color: Colors.grey,
-                                      ),
-                                      '0',
-                                      index: index,
-                                      isPhotoList: false),
+                                  child: Column(
+                                    children: [
+                                      tileWidget(
+                                          tasksList[index],
+                                          Icon(
+                                            Icons.task,
+                                            color: Colors.grey,
+                                          ),
+                                          '0',
+                                          index: index,
+                                          isPhotoList: false),
+                                      Divider()
+                                    ],
+                                  ),
                                   confirmDismissed: (direction) async {
                                     dismissItem(context, index, direction);
                                   },
@@ -515,7 +561,7 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(15, 20, 8, 8),
+        padding: const EdgeInsets.fromLTRB(15, 3, 8, 3),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -523,7 +569,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 icon,
                 SizedBox(
-                  width: 30,
+                  width: 10,
                 ),
                 Text(
                   title,
@@ -532,9 +578,12 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             //SizedBox(width: 200,),
-            Text(
-              number,
-              style: TextStyle(color: Colors.grey, fontSize: 20),
+            Padding(
+              padding: const EdgeInsets.only(right: 18),
+              child: Text(
+                number,
+                style: TextStyle(color: Colors.grey, fontSize: 20),
+              ),
             )
           ],
         ),
